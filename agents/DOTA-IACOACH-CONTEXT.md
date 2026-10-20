@@ -17,7 +17,7 @@ Electron + React + TypeScript para overlay local do Dota 2. Repositório: `pedro
 2. ✅ Talentos dinâmicos — próximo talento por nível, escolha já feita e recomendação da build.
 3. ✅ Voz local em português — modo `voice`, idioma pt-BR e síntese local do Windows via SpeechSynthesis.
 4. ✅ Narrador de stack, pull, runas, Lotus e Roshan — regras Normal/Turbo usando voz pt-BR.
-5. Perfil/conta local.
+5. ✅ Perfil/conta local — perfil JSON local com ID, nome e posição; sem login ou nuvem.
 6. Licença offline.
 7. Telemetria local opt-in.
 8. Decisão sobre servidor próprio.

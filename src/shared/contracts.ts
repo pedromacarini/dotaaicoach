@@ -164,6 +164,7 @@ export interface AppPreferences {
   position: Position;
   overlayLayout: OverlayLayout;
 }
+export interface LocalProfile { schemaVersion: 1; localId: string; displayName: string; preferredPosition: Position; createdAt: string; updatedAt: string; }
 
 export type MatchSessionSource = 'real' | 'demo';
 export type MatchSessionEndReason = 'post-game' | 'new-match' | 'demo-complete';
@@ -311,6 +312,8 @@ export interface GsiInstallResult {
 }
 
 export interface DotaOverlayAPI {
+  getLocalProfile(): Promise<LocalProfile>;
+  updateLocalProfile(patch: { displayName?: string; preferredPosition?: Position }): Promise<LocalProfile>;
   getSnapshot(): Promise<GameSnapshot>;
   getStatus(): Promise<AppStatus>;
   getPreferences(): Promise<AppPreferences>;

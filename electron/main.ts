@@ -15,6 +15,7 @@ import { createNotificationStore, type NotificationStore } from './notification-
 import { createNotificationCenter, type NotificationCenter } from './notification-center';
 import { createItemTracker, type ItemTracker } from '../src/core/item-tracker';
 import { createDraftStore, type DraftStore } from './draft-store';
+import { createProfileStore, type ProfileStore } from './profile-store';
 import type { Position } from '../src/shared/contracts';
 import {
   defaultSteamRoots, discoverDotaInstallation, inspectGsiInstallation, installGsiConfiguration,
@@ -34,6 +35,7 @@ let notificationStore: NotificationStore | null = null;
 let notificationCenter: NotificationCenter | null = null;
 let itemTracker: ItemTracker | null = null;
 let draftStore: DraftStore | null = null;
+let profileStore: ProfileStore | null = null;
 let snapshot: GameSnapshot = emptySnapshot();
 const librarySmokeOutput = process.argv
   .find(argument => argument.startsWith('--library-smoke-output='))
@@ -683,6 +685,8 @@ function installHandlers(): void {
   ipcMain.handle('draft:get', event => { assertDashboard(event); return draftState(); });
   ipcMain.handle('status:get', () => ({...status}));
   ipcMain.handle('preferences:get', () => preferencesStore?.get() ?? defaultPreferences());
+  ipcMain.handle('profile:get', () => profileStore?.get());
+  ipcMain.handle('profile:update', (event, patch: unknown) => { assertDashboard(event); if (!profileStore) throw new Error('Perfil local ainda não foi inicializado.'); return profileStore.update(patch); });
   ipcMain.handle('gsi:diagnostics', () => gsiDiagnostics);
   ipcMain.handle('sessions:get', event => { assertDashboard(event); return matchSessions(); });
   ipcMain.handle('demo:set', (event, enabled: unknown) => {
@@ -917,6 +921,7 @@ else {
   app.whenReady().then(async () => {
     authToken = getOrCreateToken();
     preferencesStore = createPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'));
+    profileStore = createProfileStore(path.join(app.getPath('userData'), 'profile.json'));
     if (overlayDisabledAdviceSmokeOutput)
       preferencesStore.updateOverlayLayout({ modules: { skill: false, items: false } });
     const sessionHistory = createSessionHistoryStore(path.join(app.getPath('userData'), 'match-sessions.json'));
