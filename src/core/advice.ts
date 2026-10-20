@@ -47,6 +47,7 @@ export interface MatchAdviceInput {
 
 const imageUrl = (libraryUrl: string, kind: 'abilities' | 'items', key: string): string =>
   new URL(`data/images/${kind}/${key}-icon.png`, libraryUrl).href;
+const readableTalent = (key: string): string => key.replace(/^special_bonus_(unique_)?/, '').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 
 function phaseFor(gameTime: number | null): { key: string; label: MatchAdvice['itemPhase'] } {
   if (gameTime === null || gameTime <= 0) return { key: 'start_game_items', label: 'Iniciais' };
@@ -77,7 +78,7 @@ export function buildMatchAdvice(input: MatchAdviceInput): MatchAdvice | null {
       const key = value.name!;
       const id = Number(Object.entries(input.abilityIds).find(([, abilityKey]) => abilityKey === key)?.[0]);
       const record = input.abilities.find(value => value.key === key);
-      return record && Number.isFinite(id) ? { id, key, name: record.name, imageUrl: imageUrl(input.libraryUrl, 'abilities', key) } : null;
+      return Number.isFinite(id) ? { id, key, name: record?.name ?? readableTalent(key), imageUrl: imageUrl(input.libraryUrl, 'abilities', key) } : null;
     });
     const recommendedKey = sequence?.abilityIds?.find(id => pair.some(value => value.name === input.abilityIds[String(id)]));
     const recommended = recommendedKey === undefined ? null : assets.find(value => value?.id === recommendedKey) ?? null;

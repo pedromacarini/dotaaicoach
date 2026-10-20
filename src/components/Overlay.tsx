@@ -82,7 +82,7 @@ export function Overlay() {
       <div className="overlay-stats">
         <div className={farm ? `farm-${farm.classification}` : ''}><small>LAST HITS</small><b>{value(snapshot.lastHits)}{farm ? <em> / média {farm.targetLastHits}</em> : null}</b></div>
         <div><small>DENIES</small><b>{value(snapshot.denies)}</b></div>
-        <div className={netWorth ? `farm-${netWorth.classification}` : ''}><small>NET WORTH</small><b>{value(snapshot.netWorth)}{netWorth ? <em> / média {netWorth.target.toLocaleString('pt-BR')}</em> : null}</b></div>
+        <div className={netWorth ? `farm-${netWorth.classification}` : ''}><small>NET WORTH</small><b>{value(snapshot.netWorth)}{netWorth ? <em> / média {netWorth.target.toLocaleString('pt-BR')}</em> : <em> / GSI sem dado</em>}</b></div>
         <div className={gpm ? `farm-${gpm.classification}` : ''}><small>GPM</small><b>{value(snapshot.gpm)}{gpm ? <em> / média {gpm.target}</em> : null}</b></div>
       </div></>}
       {hasAdviceModule && <div className="overlay-advice">
