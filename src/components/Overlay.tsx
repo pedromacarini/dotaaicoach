@@ -98,6 +98,7 @@ export function Overlay() {
               : <span className="advice-unavailable">Sem próximo up na amostra</span>}
           </div>}
           {modules.skill && advice.talents.length > 0 && <div className="talent-advice"><small>TALENTOS</small>{advice.talents.map(talent => <div key={talent.level}><b>NV. {talent.level}{talent.level === 30 ? ' · FINAL' : ''}</b><span className={talent.recommended?.key === talent.left?.key ? 'recommended' : ''}>{talent.left?.name ?? '—'}</span><span className={talent.recommended?.key === talent.right?.key ? 'recommended' : ''}>{talent.right?.name ?? '—'}</span></div>)}</div>}
+          {modules.skill && advice.nextTalent && <div className="next-talent"><small>PRÓXIMO TALENTO · NV. {advice.nextTalent.level}</small><strong>{advice.nextTalent.asset?.name ?? 'Escolha disponível'}</strong></div>}
           {modules.items && <div className="phase-items">
             <small>ITENS · {advice.itemPhase.toUpperCase()}</small>
             <div className="advice-items">{advice.items.map(item => <div key={item.id} title={item.name}><img src={item.imageUrl} alt={item.name}/><span>{item.name}</span></div>)}</div>

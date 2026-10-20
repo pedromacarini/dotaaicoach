@@ -14,7 +14,7 @@ Electron + React + TypeScript para overlay local do Dota 2. Repositório: `pedro
 ## Bloco atual de execução
 
 1. ✅ Detecção real das skills upadas — GSI publica `abilities`; recomendação procura o próximo ponto ainda não aprendido.
-2. Talentos dinâmicos.
+2. ✅ Talentos dinâmicos — próximo talento por nível, escolha já feita e recomendação da build.
 3. Voz local em português.
 4. Narrador de stack, pull, runas, Lotus e Roshan.
 5. Perfil/conta local.

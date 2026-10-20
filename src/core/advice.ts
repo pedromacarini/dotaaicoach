@@ -24,6 +24,7 @@ export interface MatchAdvice {
   nextSkillLevel: number | null;
   skillEvidence: number;
   talents: TalentRecommendation[];
+  nextTalent: { level: number; asset: AdviceAsset | null } | null;
   itemPhase: 'Iniciais' | 'Início' | 'Meio de jogo' | 'Final de jogo';
   items: AdviceAsset[];
 }
@@ -99,6 +100,16 @@ export function buildMatchAdvice(input: MatchAdviceInput): MatchAdvice | null {
   }).filter(value => value.left || value.right);
   const finalTalent = talents.find(value => value.level === 25);
   if (finalTalent) talents.push({ ...finalTalent, level: 30, recommended: null });
+  const nextTalent = (() => {
+    for (const level of [10, 15, 20, 25]) {
+      if ((input.heroLevel ?? 0) < level) break;
+      const row = talents.find(value => value.level === level);
+      if (!row) continue;
+      const picked = [row.left, row.right].some(asset => asset && (actualLevels[asset.key] ?? 0) > 0);
+      if (!picked) return { level, asset: row.recommended ?? row.left ?? row.right };
+    }
+    return null;
+  })();
 
   const phase = phaseFor(input.gameTime);
   const popular = input.popularity[phase.key] ?? {};
@@ -122,6 +133,7 @@ export function buildMatchAdvice(input: MatchAdviceInput): MatchAdvice | null {
     nextSkillLevel: nextSkill ? nextIndex + 1 : null,
     skillEvidence: Number(sequence?.matches) || 0,
     talents,
+    nextTalent,
     itemPhase: phase.label,
     items,
   };
