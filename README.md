@@ -62,8 +62,8 @@ Para mais informações detalhadas, consulte os seguintes arquivos na pasta `doc
 
 ## Contato
 
-- **GitHub**: [https://github.com/seu_usuario/dota2-overlay-brasil](https://github.com/seu_usuario/dota2-overlay-brasil)
-- **E-mail**: seu_email@exemplo.com
-- **Discord**: Entrar no servidor Discord para obter suporte e interagir com a comunidade.
+- **GitHub**: [https://github.com/pedromacarini/dota2-overlay-brasil](https://github.com/seu_usuario/dota2-overlay-brasil)
+- **E-mail**: opazeh@gmail.com
+- **Discord**: Entrar no servidor Discord para obter suporte e interagir com a comunidade. (breve)
 
 ![Contribuidores](https://github.com/seu_usuario/dota2-overlay-brasil/blob/main/docs/images/contributors.png)
