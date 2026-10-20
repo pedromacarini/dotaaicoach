@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { chooseDisplayedSession, createDemoSession } from '../core/match-session';
-import { evaluateFarm, selectFarmObservation, targetLastHits, type FarmBenchmark } from '../core/farm-benchmark';
+import { evaluateEconomy, evaluateFarm, selectFarmObservation, targetLastHits, type FarmBenchmark } from '../core/farm-benchmark';
 import type { AppPreferences, GameSnapshot, MatchSession, MatchSessionState, Position } from '../shared/contracts';
 import { formatClock } from './useOverlay';
 
@@ -62,6 +62,9 @@ export function StatsPage({ snapshot, preferences, sessions }: {
     ? { gameTime: current?.summary.duration ?? null, lastHits: current?.summary.lastHits ?? null }
     : selectFarmObservation(snapshot, latest);
   const assessment = evaluateFarm(benchmarkPosition, observation.gameTime, observation.lastHits);
+  const economyTime = observation.gameTime;
+  const netWorthAssessment = evaluateEconomy(benchmarkPosition, economyTime, isPastSession ? current?.summary.netWorth ?? null : snapshot.netWorth, 'netWorth');
+  const gpmAssessment = evaluateEconomy(benchmarkPosition, economyTime, isPastSession ? current?.summary.gpm ?? null : snapshot.gpm, 'gpm');
   const grade = assessment ? gradeCopy[assessment.classification] : null;
   return <>
     <div className="page-top"><div><div className="eyebrow">DESEMPENHO LOCAL</div><h1>Estatísticas</h1><p>Compare sua evolução com uma referência aberta e acompanhe sessões salvas no computador.</p></div><div className="version">META EXPERIMENTAL V1</div></div>
@@ -73,6 +76,10 @@ export function StatsPage({ snapshot, preferences, sessions }: {
       <div><small>DIFERENÇA</small><strong className={assessment && assessment.delta !== null && assessment.delta >= 0 ? 'positive' : 'negative'}>{assessment?.delta === null || assessment?.delta === undefined ? '—' : `${assessment.delta > 0 ? '+' : ''}${assessment.delta}`}</strong></div>
       <div><small>FAIXA DA META</small><strong>{assessment ? `±${assessment.tolerance}` : '—'}</strong></div>
     </section>
+    <section className="stats-economy">{[['PATRIMÔNIO', netWorthAssessment], ['GPM', gpmAssessment]].map(([label, economy]) => {
+      const value = economy as ReturnType<typeof evaluateEconomy>;
+      return <div className={`farm-grade ${value?.classification ?? 'unavailable'}`} key={label as string}><small>{label as string} · {positionNames[benchmarkPosition]}</small><strong>{value?.actual === null || value?.actual === undefined ? 'Sem dado' : number(value.actual)}</strong><p>{value ? `Média ${number(value.target)} · ${value.delta !== null && value.delta >= 0 ? '+' : ''}${value.delta ?? '—'}` : 'Aguardando tempo e dado do GSI.'}</p></div>;
+    })}</section>
     <div className="stats-layout">
       <section className="settings-card stats-chart-card"><div className="card-top"><div><h3>Evolução de farm</h3><p>{current ? `${current.heroName || 'Herói não informado'} · ${current.source === 'demo' ? 'sessão simulada' : current.endedAt ? 'partida salva' : 'partida real em andamento'}` : 'A curva aparece durante uma sessão.'}</p></div>{current && <span className={`session-source ${current.source}`}>{current.source === 'demo' ? 'DEMONSTRAÇÃO' : current.endedAt ? 'HISTÓRICO' : 'REAL · AO VIVO'}</span>}</div>
         {current ? <FarmChart session={current}/> : <div className="stats-empty">Sem sessão ativa. O modo demonstração cria uma partida rica sem precisar abrir o Dota.</div>}

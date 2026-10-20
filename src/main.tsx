@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Dashboard } from './components/Dashboard';
 import { Overlay } from './components/Overlay';
 import './style.css';
+import './economy.css';
 
 const mode = new URLSearchParams(location.search).get('mode');
 document.documentElement.dataset.mode = mode === 'overlay' ? 'overlay' : 'dashboard';
