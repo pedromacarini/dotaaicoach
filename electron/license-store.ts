@@ -2,7 +2,7 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import type { LicenseStatus } from '../src/shared/contracts';
 
-const PUBLIC_KEY = Buffer.from('MCowBQYDK2VwAyEAqDlNZsVMLheQRd0C/GvFblAV5z9JkSVntw+R5wPpiW0=', 'base64');
+const PUBLIC_KEY = Buffer.from('MCowBQYDK2VwAyEAilqNFhdk5IbHQ3ee2MU76rv6kGfRWg1w4CwNc/KSukY=', 'base64');
 type LicensePayload = { schemaVersion: 1; licenseId: string; subject: string; plan: 'premium'; issuedAt: string; expiresAt: string | null; features: string[] };
 const free = (reason: string): LicenseStatus => ({ valid: false, plan: 'free', subject: null, expiresAt: null, features: [], reason });
 export function verifyLicense(value: unknown, now = new Date()): LicenseStatus {
