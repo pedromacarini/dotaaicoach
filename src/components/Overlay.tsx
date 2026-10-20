@@ -3,8 +3,16 @@ import { useMatchAdvice } from './useMatchAdvice';
 import { useEffect, useRef } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { evaluateEconomy, evaluateFarm } from '../core/farm-benchmark';
+import { voiceAssetUrl } from '../core/voice-assets';
 const value = (n: number | null) => n === null ? '—' : n.toLocaleString('pt-BR');
 const positionName = ['','Carry','Mid','Offlane','Sup. 4','Sup. 5'];
+function speakLocal(text: string): void {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'pt-BR'; utterance.rate = 1.05; utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
+}
 export function Overlay() {
   const { snapshot, preferences, status, notificationCenter, itemTiming } = useOverlay();
   const modules = preferences.overlayLayout.modules;
@@ -18,12 +26,12 @@ export function Overlay() {
     for (const banner of notificationCenter.runtime.active) {
       if (spokenAlerts.current.has(banner.id) || banner.audio !== 'voice') continue;
       spokenAlerts.current.add(banner.id);
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(banner.title);
-        utterance.lang = 'pt-BR'; utterance.rate = 1.05; utterance.volume = 1;
-        window.speechSynthesis.speak(utterance);
-      }
+      const asset = voiceAssetUrl(banner.title);
+      if (asset) {
+        const audio = new Audio(asset);
+        audio.onerror = () => speakLocal(banner.title);
+        void audio.play().catch(() => speakLocal(banner.title));
+      } else speakLocal(banner.title);
     }
     if (spokenAlerts.current.size > 100) spokenAlerts.current.clear();
   }, [notificationCenter.runtime.active]);
