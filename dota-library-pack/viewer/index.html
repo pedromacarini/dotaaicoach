@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c101b">
+  <title>Dota Open Library — Dota 2 Intelligence</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="masthead">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span>◆</span></div>
+        <div><div class="eyebrow">CATÁLOGO INDEPENDENTE · DOTA 2</div><h1>Dota <span>Open Library</span></h1><p>Conhecimento do jogo, organizado para jogar melhor.</p></div>
+      </div>
+      <div class="mast-meta"><div class="source-pill"><span class="live-dot"></span> BASE LOCAL · SEM LOGIN</div><div id="manifest-status" class="muted-small">Preparando biblioteca...</div></div>
+    </header>
+    <main class="page">
+      <section class="dashboard" aria-label="Visão geral da biblioteca">
+        <div class="metric"><span class="metric-icon">♟</span><span>HERÓIS</span><strong id="count-heroes">—</strong><small>Perfis e habilidades</small></div>
+        <div class="metric"><span class="metric-icon">⬡</span><span>ITENS</span><strong id="count-items">—</strong><small>Equipamentos e efeitos</small></div>
+        <div class="metric"><span class="metric-icon">✦</span><span>HABILIDADES</span><strong id="count-abilities">—</strong><small>Inclui dados internos</small></div>
+        <div class="metric"><span class="metric-icon">◈</span><span>NEUTROS</span><strong id="count-neutrals">—</strong><small>Habilidades da selva</small></div>
+        <div class="metric metric-progress"><div class="metric-label"><span>IMAGENS LOCAIS</span><strong id="coverage-number">—</strong></div><div class="meter"><div id="coverage-bar"></div></div><small id="coverage-description">Auditoria local</small></div>
+      </section>
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="sidebar-intro"><span class="eyebrow">EXPLORAR</span><h2>Enciclopédia</h2></div>
+          <nav class="catalog-tabs" id="catalog-tabs" aria-label="Categorias"></nav>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="catalog-search" type="search" placeholder="Buscar herói, item ou skill..." autocomplete="off" aria-label="Buscar catálogo"><kbd>/</kbd></label>
+          <div class="filterbar"><label><span>Imagens</span><select id="media-filter"><option value="all">Todas</option><option value="available">Disponíveis</option><option value="missing">Ausentes</option></select></label><label class="technical-check" id="technical-check-label" hidden><input type="checkbox" id="technical-check"> Mostrar técnicos</label></div>
+          <div class="list-caption"><span id="list-count">Carregando...</span><span>CATÁLOGO</span></div>
+          <div id="catalog-list" class="catalog-list" aria-label="Resultados da busca"></div>
+          <button id="show-more" class="show-more" type="button" hidden>Mostrar mais registros ↓</button>
+          <div class="sidebar-footer"><span>●</span> Fonte estática: <strong>odota/dotaconstants</strong><br><small>Estatísticas online: OpenDota com cache automático</small></div>
+        </aside>
+        <section class="detail-pane" aria-label="Informações do registro">
+          <div id="details"><div class="loading-state">Carregando ficha...</div></div>
+        </section>
+      </div>
+      <footer class="footer"><span>DOTA OPEN LIBRARY v1.6</span><span>Projeto independente. Não afiliado à Valve, OpenDota ou Dota2ProTracker. Arte sujeita aos direitos dos titulares.</span></footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,500 @@
+{
+  "origin": "REA analysis supplied by the user of a locally installed Dota2Brasil Overlay app",
+  "sha256Asar": "40557c426109657126a74c7248bcdf5d07b5ea4e46e29dd57b0e207942366c46",
+  "nature": "Only discovered file paths and architecture categories; NO program code, assets, data values, license logic, auth or endpoints copied.",
+  "numberOfPaths": 123,
+  "modules": [
+    {
+      "path": "assets/default-notifications.json",
+      "domain": "outros"
+    },
+    {
+      "path": "assets/farm-route-calibration.default.json",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/config/app-config.js",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/config/sentry.js",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/data/patch.js",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/main.js",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/preload.js",
+      "domain": "outros"
+    },
+    {
+      "path": "dist/main/server/gsi-server.js",
+      "domain": "integração"
+    },
+    {
+      "path": "dist/main/server/gsi-types.js",
+      "domain": "integração"
+    },
+    {
+      "path": "dist/main/services/ajuda-videos.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/always-on-top-gate.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/atalhos-globais.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/cadeado.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/camp-gold-collector.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/captura-tela-gdi.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/config-sync.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/equilibrio.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/foreground-detector.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/grupos-demo.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/grupos.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/gsi-config.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/key-sender.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/lane-state/classifier.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/lane-state/types.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/lane-tracker/cluster-waves.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/lane-tracker/lane-assignment.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/license-validator.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/lobby-aura.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/match-sender.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/match-tracker.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/merge-rename.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/modo-compatibilidade-video.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/modo-turbo.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/notification-engine.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/novidades.service.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/overlay-visibility.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/portao-do-gratuito.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/process-elevation.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/renderer-launch-recovery.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/single-instance-takeover.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/socket-client.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/sonda-transparencia.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/steam-detector.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/update-rollout.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/uso-recursos.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/services/video-config-detector.js",
+      "domain": "serviços-principais"
+    },
+    {
+      "path": "dist/main/storage/bar-measurements.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/db.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/license-cache.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/match-storage.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/models/user.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/notification-storage.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/overlay-settings.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/session-cache.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/storage/update-state.js",
+      "domain": "persistência"
+    },
+    {
+      "path": "dist/main/utils/api-validators.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/audio-filename.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/auto-restart-policy.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/camp-proximity.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/hit-test.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/import-sanitizer.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/ipc-authz.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/ipc-input-validation.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/license-signature.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/notification-validation.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/polygon.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "dist/main/utils/proto-guard.js",
+      "domain": "infraestrutura"
+    },
+    {
+      "path": "package.json",
+      "domain": "outros"
+    },
+    {
+      "path": "src/renderer/ajuda-inicial.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/auth-prompt.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/auto-accept-badge.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/campeonato.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/config-notifications.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/data/ability-limits.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dispel-catalog.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dispel-cures.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dispel-sources.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dota-hero-names.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dota-heroes-ms.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/dota-items.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/draft-aliases.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/farm-routes.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/hero-primary-position.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/innate-abilities.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/map-points.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/data/talent-slots.js",
+      "domain": "catálogos-privados-do-Aura"
+    },
+    {
+      "path": "src/renderer/display-mode-prompt.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/index.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/js/ajuda-inicial.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/ajuda-videos.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/auth-prompt.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/cadeado.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/camp-evolution.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/camp-scout.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/campeonato-dossie.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/cm-coluna.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/cm-draft.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/config-notifications.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/dispel-logic.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/draft-ciclo.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/enemy-heroes.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/farm-route.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/grupos-regras.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/grupos.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/inventory-geometry.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/item-tracker.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/lh-meta.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/lobby.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/main.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/move-speed.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/onboarding.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/overlay.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/pergunta-turbo.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/sentry-init.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/skill-advisor-logic.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/splash-som.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/tutorial.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/uso-recursos.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/js/ward-tracker.js",
+      "domain": "interface-funcional"
+    },
+    {
+      "path": "src/renderer/onboarding.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/overlay.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/sonda-transparencia.html",
+      "domain": "janelas-e-páginas"
+    },
+    {
+      "path": "src/renderer/splash.html",
+      "domain": "janelas-e-páginas"
+    }
+  ]
+}

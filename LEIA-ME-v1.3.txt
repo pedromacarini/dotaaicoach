@@ -1,0 +1,47 @@
+DOTA OPEN LIBRARY — recuperação de ícones pelo Dota 2 local (v1.3)
+===================================================================
+Este pacote NÃO contém os recursos do jogo. O código faz leitura local somente
+nos arquivos VPK. Não modifica os arquivos do Steam ou Dota 2.
+
+1) Extrair este ZIP em C:\Projetos\dota-open-overlay
+   A pasta dota-library-pack\scripts receberá recover-vpk-icons.cjs.
+   A pasta dota-library-pack\data NÃO será substituída.
+
+2) Descobrir o caminho da sua instalação do Dota 2 (Steam > Dota 2 >
+   Propriedades > Arquivos instalados > Explorar). O arquivo fica em
+   <biblioteca Steam>\steamapps\common\dota 2 beta\game\dota\pak01_dir.vpk.
+
+3) AUDITAR SOMENTE (sem extração nem alterações em imagens):
+   cd C:\Projetos\dota-open-overlay
+   node .\dota-library-pack\scripts\recover-vpk-icons.cjs --vpk="D:\CAMINHO\game\dota\pak01_dir.vpk"
+   Gera data\reports\vpk-matches.csv e vpk-matches.json.
+
+4) Para converter texturas .vtex_c em PNG, instale o CLI oficial da ferramenta
+   Source 2 Viewer / ValveResourceFormat:
+   https://github.com/ValveResourceFormat/ValveResourceFormat/releases
+   Guia: https://s2v.app/ValveResourceFormat/guides/command-line.html
+   Você precisa do programa Source2Viewer-CLI.exe; o GUI, isoladamente,
+   não permite a execução do comando automatizado.
+
+5) TESTAR EXTRAÇÃO DE 5 ÍCONES EXATOS:
+   node .\dota-library-pack\scripts\recover-vpk-icons.cjs --vpk="D:\CAMINHO\game\dota\pak01_dir.vpk" --cli="C:\CAMINHO\Source2Viewer-CLI.exe" --recover --limit=5
+
+6) Se funcionar, recuperar as outras correspondências exatas:
+   node .\dota-library-pack\scripts\recover-vpk-icons.cjs --vpk="D:\CAMINHO\game\dota\pak01_dir.vpk" --cli="C:\CAMINHO\Source2Viewer-CLI.exe" --recover --all
+
+RESULTADOS:
+  dota-library-pack\data\reports\vpk-matches.csv
+  dota-library-pack\data\reports\vpk-extraction-log.json
+  Os PNGs convertidos vão para dota-library-pack\data\images\abilities e,
+  quando aplicável, data\images\neutral-abilities.
+  Os manifestos são atualizados APENAS para imagens convertidas com sucesso.
+
+NOTAS:
+- Não executar build-library.cjs sem --download-images / --retry-missing logo
+  após este processo, pois esse comando pode recalcular estados de cache.
+- Correspondências alternativas NÃO são automaticamente copiadas, para evitar
+  trocar ícone de habilidade por outro visualmente parecido, mas incorreto.
+- Os 1.805 PNGs já salvos não são substituídos.
+- A existência do índice não garante que todos os pacotes *_NNN.vpk estejam
+  presentes no PC nem que o CLI consiga decodificar todas as texturas.
+- Não redistribua imagens do jogo como sendo recursos sob licença MIT.

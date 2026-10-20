@@ -1,0 +1,79 @@
+{
+  "name": "dota-open-overlay",
+  "version": "0.2.1",
+  "private": true,
+  "description": "Overlay comunitário experimental com biblioteca aberta e atualizável do Dota 2",
+  "main": "dist-electron/electron/main.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:electron\" \"npm:dev:web\" \"npm:dev:launch\"",
+    "dev:electron": "tsc -p tsconfig.electron.json --watch --preserveWatchOutput",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:launch": "wait-on tcp:127.0.0.1:5173 file:dist-electron/electron/main.js && electron . --dev-server",
+    "build": "tsc -p tsconfig.electron.json && tsc --noEmit -p tsconfig.web.json && vite build",
+    "start": "electron .",
+    "test": "npm run build && node --test tests/*.test.cjs",
+    "package:win": "npm run build && electron-builder --win nsis",
+    "data:sync": "node scripts/sync-data.mjs",
+    "data:update": "npm install dotaconstants@latest && npm run data:sync",
+    "data:check": "node scripts/check-data.mjs",
+    "predev": "npm run data:sync",
+    "prebuild": "npm run data:sync",
+    "test:library": "node --test tests/library.test.cjs"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "dotaconstants": "^10.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "concurrently": "^9.1.0",
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.2.0",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "dev.community.dotaopenoverlay",
+    "productName": "Dota Open Overlay",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dota-library-pack/viewer",
+        "to": "dota-library-pack/viewer"
+      },
+      {
+        "from": "dota-library-pack/data",
+        "to": "dota-library-pack/data"
+      },
+      {
+        "from": "dota-library-pack/scripts/serve-library.cjs",
+        "to": "dota-library-pack/scripts/serve-library.cjs"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

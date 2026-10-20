@@ -1,0 +1,23 @@
+node_modules/
+dist/
+dist-electron/
+release/
+*.log
+.env
+.env.*
+!*.example
+.DS_Store
+
+# Catálogos derivados de uma dependência externa (gerar com npm run data:sync)
+src/data/generated/*.json
+
+# Biblioteca local gerada e artes do Dota 2 (não redistribuir como código MIT)
+dota-library-pack/data/
+
+# Ferramentas locais de extração/conversão; não fazem parte do aplicativo
+Source2Viewer*.exe
+libSkiaSharp.dll
+spirv-cross.dll
+
+# Evidência local do app de referência (arquivo grande/proprietário; manter fora do Git)
+dota2brasil-analise.json

@@ -1,0 +1,29 @@
+{
+  "vpk_file": "pak01_dir.vpk",
+  "indexed_files": 388116,
+  "exact_matches": 51,
+  "missing_unique_keys": 332,
+  "sample_exact_matches": [
+    "abyssal_underling_archer_aoe",
+    "abyssal_underling_warrior_last_will",
+    "abyssal_underling_warrior_mana_burn",
+    "ancient_rock_golem_weakening_aura",
+    "berserker_troll_break",
+    "black_drake_magic_amplification_aura",
+    "creep_irresolute",
+    "creep_piercing",
+    "creep_siege",
+    "deity_blessing_aghanim",
+    "deity_blessing_deep_ones",
+    "deity_blessing_flayed_twins",
+    "deity_blessing_fundamentals",
+    "deity_blessing_goddess_of_luck",
+    "deity_blessing_imperator",
+    "deity_blessing_omniscience",
+    "deity_blessing_seven_hells",
+    "deity_blessing_spirit_of_nature",
+    "enraged_wildkin_hurricane",
+    "fel_beast_haunt"
+  ],
+  "note": "Utilitário v1.3 deve fazer a mesma verificação no PC do usuário."
+}
