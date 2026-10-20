@@ -142,6 +142,17 @@ function updateSnapshot(value: GameSnapshot): void {
   const sessionUpdate = sessionRecorder?.accept(value);
   if (sessionUpdate?.changed) notifyMatchSessions(sessionUpdate.recentChanged);
   if (notificationCenter?.acceptGameTime(value.gameTime, Date.now(), value.matchId)) notifyNotifications();
+  if (notificationCenter && value.source === 'gsi' && value.heroLevel !== null &&
+      previous.source === 'gsi' && previous.heroLevel !== null && value.heroLevel > previous.heroLevel) {
+    const level = value.heroLevel;
+    const talentLevel = [10, 15, 20, 25, 30].includes(level);
+    if (notificationCenter.acceptContext({
+      id: `${value.matchId ?? 'session'}:level:${level}`,
+      title: talentLevel ? `Nível ${level}: escolha seu talento` : `Nível ${level}: confira sua próxima habilidade`,
+      tags: [talentLevel ? 'talento' : 'skill', 'nivel'], audio: 'voice', durationSeconds: 8,
+      scheduledAt: value.gameTime ?? 0,
+    })) notifyNotifications();
+  }
   const itemUpdate = itemTracker?.accept(value, preferencesStore?.get().position ?? 1);
   if (itemUpdate?.changed) notifyItemTiming();
   notify();

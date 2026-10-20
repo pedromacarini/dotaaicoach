@@ -271,6 +271,15 @@ export interface NotificationBanner {
   audio: NotificationAudioMode;
 }
 
+export interface NotificationContextEvent {
+  id: string;
+  title: string;
+  tags: string[];
+  audio: NotificationAudioMode;
+  durationSeconds: number;
+  scheduledAt?: number;
+}
+
 export interface NotificationRuntime {
   gameTime: number | null;
   simulated: boolean;

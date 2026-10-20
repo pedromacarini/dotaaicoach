@@ -89,6 +89,17 @@ test('central expira, dispensa, filtra posição e toca somente regra beep', () 
   assert.equal(center.getState(4001).runtime.active.length, 0);
 });
 
+test('central aceita evento contextual uma vez e preserva voz local', () => {
+  const { createNotificationCenter } = require('../dist-electron/electron/notification-center.js');
+  const center = createNotificationCenter({ store: { get: () => ({ schemaVersion: 1, mode: 'normal', rules: [] }) }, getPosition: () => 1, getAlertsEnabled: () => true, onSound: () => { throw new Error('voz não deve virar beep'); } });
+  const event = { id: 'match-a:level:10', title: 'Nível 10: escolha seu talento', tags: ['talento', 'nivel'], audio: 'voice', durationSeconds: 8, scheduledAt: 600 };
+  assert.equal(center.acceptContext(event, 1000), true);
+  assert.equal(center.acceptContext(event, 1100), false);
+  const banner = center.getState(1000).runtime.active[0];
+  assert.equal(banner.title, event.title);
+  assert.equal(banner.audio, 'voice');
+});
+
 test('central reconhece forte regressão ao início como nova partida', () => {
   const { createNotificationCenter } = require('../dist-electron/electron/notification-center.js');
   const config = {schemaVersion:1,mode:'normal',rules:[baseRule({atSeconds:10,repeatEverySeconds:null,repeatUntilSeconds:null})]};

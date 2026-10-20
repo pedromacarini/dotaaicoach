@@ -1,4 +1,4 @@
-import type { NotificationBanner, NotificationCenterState, NotificationConfig, Position } from '../src/shared/contracts';
+import type { NotificationBanner, NotificationCenterState, NotificationConfig, NotificationContextEvent, Position } from '../src/shared/contracts';
 import { copyNotificationPresets } from '../src/core/notification-presets';
 import { createNotificationScheduler } from '../src/core/notification-scheduler';
 import type { NotificationStore } from './notification-store';
@@ -6,6 +6,7 @@ import type { NotificationStore } from './notification-store';
 export interface NotificationCenter {
   getState(now?: number): NotificationCenterState;
   acceptGameTime(gameTime: number | null, now?: number, sessionIdentity?: string | null, disconnectedBoundary?: boolean): boolean;
+  acceptContext(event: NotificationContextEvent, now?: number): boolean;
   setSimulatedTime(gameTime: number | null, now?: number): boolean;
   configurationChanged(config: NotificationConfig, now?: number): void;
   dismiss(id: string): boolean;
@@ -26,6 +27,7 @@ export function createNotificationCenter(options: {
   let previousObservedTime: number | null = null;
   let previousSessionIdentity: string | null = null;
   let boundaryPending = false;
+  const contextFired = new Set<string>();
 
   const expire = (now = Date.now()): boolean => {
     const next = active.filter(banner => banner.expiresAt > now);
@@ -71,6 +73,17 @@ export function createNotificationCenter(options: {
       if (time !== null) { previousObservedTime = time; boundaryPending = false; }
       gameTime = time;
       return (time === null ? expire(now) : advance(time, now)) || timeChanged || identityChanged || returnedToStart;
+    },
+    acceptContext(event, now = Date.now()) {
+      if (!event.id || contextFired.has(event.id)) return false;
+      contextFired.add(event.id);
+      expire(now);
+      const banner: NotificationBanner = { id: event.id, ruleId: `context:${event.id}`, title: event.title,
+        scheduledAt: event.scheduledAt ?? gameTime ?? 0, tags: [...event.tags],
+        expiresAt: now + Math.max(1, event.durationSeconds) * 1000, audio: event.audio };
+      active = [banner, ...active.filter(item => item.id !== banner.id)].slice(0, 6);
+      if (getAlertsEnabled() && event.audio === 'beep') onSound();
+      return true;
     },
     setSimulatedTime(time, now = Date.now()) {
       simulated = time !== null;
