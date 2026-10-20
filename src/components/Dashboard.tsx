@@ -59,7 +59,7 @@ export function Dashboard() {
   }
   const activationCard = !license?.valid ? <section className="settings-card license-activation">
     <div className="card-top"><div><h3>Ativar licença de teste</h3><p>Cole o código recebido para liberar os recursos premium neste computador.</p></div><span className="mini-label">20 CARACTERES</span></div>
-    <div className="notification-form"><label className="wide"><span>Código de ativação</span><input maxLength={20} value={activationCode} placeholder="AXE-BLINK-LOTUS-7F2C" onChange={event => setActivationCode(event.target.value.toUpperCase())}/></label><button type="button" className="primary-button" disabled={busy || activationCode.length < 20} onClick={() => void activateLicenseCode()}>Ativar código</button></div>
+    <div className="notification-form"><label className="wide"><span>Código de ativação</span><input maxLength={20} value={activationCode} placeholder="HERO-ITEM-LOTUS-XXXX" onChange={event => setActivationCode(event.target.value.toUpperCase())}/></label><button type="button" className="primary-button" disabled={busy || activationCode.length < 20} onClick={() => void activateLicenseCode()}>Ativar código</button></div>
   </section> : null;
   async function setTelemetryEnabled(enabled: boolean) {
     setBusy(true); setMessage('');

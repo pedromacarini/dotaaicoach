@@ -945,6 +945,14 @@ else {
     preferencesStore = createPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'));
     profileStore = createProfileStore(path.join(app.getPath('userData'), 'profile.json'));
     licenseStore = createLicenseStore(path.join(app.getPath('userData'), 'license.json'));
+    const pendingActivationPath = path.join(app.getPath('userData'), 'pending-activation.txt');
+    try {
+      const pendingCode = fs.readFileSync(pendingActivationPath, 'utf8').trim();
+      if (pendingCode && !licenseStore.get().valid) {
+        licenseStore.activateCode(pendingCode);
+        fs.rmSync(pendingActivationPath, { force: true });
+      }
+    } catch { /* Código ausente ou inválido: o app continua em modo gratuito. */ }
     telemetryStore = createTelemetryStore(path.join(app.getPath('userData'), 'telemetry.json'));
     telemetryStore.record('app.started', { version: app.getVersion() });
     if (overlayDisabledAdviceSmokeOutput)
