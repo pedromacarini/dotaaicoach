@@ -35,6 +35,7 @@ Exemplo da API GSI de terceiros (não é um serviço de coleta a ser embutido): 
 
 - *Itens / habilidades / heróis*: catálogo geral disponível após sincronizar a fonte, com condições de patch.
 - *Contador de farm / patrimônio*: calculado/exibido somente quando o GSI realmente fornece os campos para o jogador local.
-- *Itens populares e confrontos*: consultados automaticamente na API pública OpenDota e mantidos em cache local por 30 minutos.
+- *Itens populares e confrontos*: consultados automaticamente na API pública OpenDota e mantidos em cache local por 30 minutos. Se uma atualização falhar, o servidor pode servir o último valor expirado com aviso explícito de indisponibilidade, em vez de apagar o guia.
 - *Builds e skills por posição*: amostra de partidas profissionais recentes obtida pelo Explorer do OpenDota; inventários vêm das partidas e sequências de habilidades somente de replays detalhados. A interface sempre mostra tamanho da amostra, patch e origem.
+- As rotas de skills/build e itens são independentes: falha ou timeout em uma delas preserva a resposta da outra e o último payload válido em memória. O proxy usa timeout de 20 segundos por chamada; recomendações podem envolver uma consulta Explorer seguida de detalhes de replays.
 - *Ward inimiga não revelada, farm de inimigos ocultos, posição de jogadores sem visão*: não estão disponíveis legitimamente pelo GSI de jogador local. Não serão inferidos nem adicionados como informação oculta.

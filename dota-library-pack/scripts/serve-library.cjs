@@ -7,19 +7,23 @@ const ROOT=path.resolve(__dirname,'..');
 const TYPES={'.json':'application/json; charset=utf-8','.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
 const PORT=Number(process.env.DOTA_LIBRARY_PORT)||3198;
 const cache=new Map();const ongoing=new Map();const TTL=30*60*1000;
+const OPEN_DOTA_TIMEOUT_MS=20000;
 const json=(res,status,obj)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify(obj));};
-async function requestOpenDota(endpoint,remoteFetch=fetch){
- const now=Date.now();const old=cache.get(endpoint);
+async function requestOpenDota(endpoint,remoteFetch=fetch,options={}){
+ const now=options.now?options.now():Date.now();const old=cache.get(endpoint);
  if(old && now-old.stamp<TTL)return {...old.value,cached:true};
  if(ongoing.has(endpoint))return ongoing.get(endpoint);
  const task=(async()=>{
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),11000);
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),options.timeoutMs??OPEN_DOTA_TIMEOUT_MS);
   try{
    const upstream=await remoteFetch('https://api.opendota.com/api/'+endpoint,{headers:{Accept:'application/json','User-Agent':'DotaOpenLibrary/1.6 (local viewer; automatic cache)'},signal:controller.signal});
    if(!upstream.ok){const err=new Error('OpenDota respondeu HTTP '+upstream.status);err.status=upstream.status;throw err;}
    const data=await upstream.json();
    if(!(Array.isArray(data)||data&&typeof data==='object'))throw new Error('Resposta inesperada da OpenDota');
-   const value={source:'OpenDota API',fetchedAt:new Date().toISOString(),cached:false,data};cache.set(endpoint,{stamp:Date.now(),value});return value;
+   const value={source:'OpenDota API',fetchedAt:new Date().toISOString(),cached:false,data};cache.set(endpoint,{stamp:options.now?options.now():Date.now(),value});return value;
+  }catch(error){
+   if(old)return {...old.value,cached:true,stale:true,warning:'OpenDota indisponível; exibindo o último dado em cache.'};
+   throw error;
   }finally{clearTimeout(timer);ongoing.delete(endpoint);}
  })(); ongoing.set(endpoint,task);return task;
 }
@@ -114,4 +118,4 @@ function makeServer({base=ROOT,remoteFetch}={}){
  });
 }
 if(require.main===module){makeServer().listen(PORT,'127.0.0.1',()=>console.log('Dota Open Library v1.6: http://127.0.0.1:'+PORT+'/'));}
-module.exports={makeServer,requestOpenDota,requestRecommendations,recommendationSql};
+module.exports={makeServer,requestOpenDota,requestRecommendations,recommendationSql,OPEN_DOTA_TIMEOUT_MS};

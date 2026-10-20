@@ -23,6 +23,14 @@ test('tracker registra primeira observação uma vez entre slot, mochila e baú'
   assert.equal(state.observations[0].firstSeenArea,'active');
 });
 
+test('tracker não registra itens antes de GAME_IN_PROGRESS', () => {
+  const tracker=createItemTracker();
+  tracker.accept(snapshot({gameTime:null,gameState:'DOTA_GAMERULES_STATE_STRATEGY_TIME',inventory:inventory([present('slot0','active','item_boots')])}),3);
+  assert.equal(tracker.getState().observations.length,0);
+  tracker.accept(snapshot({gameTime:0,gameState:'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS',inventory:inventory([present('slot0','active','item_boots')])}),3);
+  assert.equal(tracker.getState().observations[0].firstSeenAt,0);
+});
+
 test('combinação vira novo tipo, desaparecimento/reaparição e reconexão não duplicam', () => {
   const tracker=createItemTracker();
   tracker.accept(snapshot({gameTime:200,inventory:inventory([present('slot0','active','item_energy_booster'),present('slot1','active','item_void_stone')])}),3);

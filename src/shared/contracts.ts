@@ -3,6 +3,8 @@ export interface GameSnapshot {
   connected: boolean;
   receivedAt: number | null;
   gameTime: number | null;
+  /** Valor bruto de map.game_time, antes da calibração do início da partida. */
+  rawGameTime?: number | null;
   matchId: string | null;
   gameState: string | null;
   playerActivity: string | null;

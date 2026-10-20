@@ -16,6 +16,34 @@ test('Normalização de um payload do jogador local', () => {
   assert.equal(result.source, 'gsi');
 });
 
+test('relógio calibra estratégia para zero ao entrar em jogo e preserva offset na reconexão', () => {
+  const { createGsiSnapshotNormalizer } = require('../dist-electron/electron/gsi.js');
+  const normalize = createGsiSnapshotNormalizer();
+  const strategy = normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_STRATEGY_TIME', game_time: 100, matchid: '1' } }, 1_000);
+  assert.equal(strategy.gameTime, null, 'pré-jogo não pode alimentar relógio nem agenda');
+  assert.equal(strategy.rawGameTime, 100);
+  const started = normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 105, matchid: '1' } }, 2_000);
+  assert.equal(started.gameTime, 0);
+  const playing = normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 127, matchid: '1' } }, 24_000);
+  assert.equal(playing.gameTime, 22);
+  const reconnected = normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 135, matchid: '1' } }, 32_000);
+  assert.equal(reconnected.gameTime, 30, 'mesma partida preserva o baseline');
+  const nextMatch = normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 90, matchid: '2' } }, 40_000);
+  assert.equal(nextMatch.gameTime, 0, 'nova partida recebe baseline próprio');
+  normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_STRATEGY_TIME', game_time: 100 } }, 50_000);
+  assert.equal(normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 105 } }, 55_000).gameTime, 0);
+  assert.equal(normalize({ map: { game_state: 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS', game_time: 127, matchid: '3' } }, 77_000).gameTime, 22,
+    'matchid que chega tarde na nova partida não pode zerar o relógio');
+});
+
+test('sem game_state prefere clock_time explícito como fallback documentável', () => {
+  const { createGsiSnapshotNormalizer } = require('../dist-electron/electron/gsi.js');
+  const normalize = createGsiSnapshotNormalizer();
+  const snapshot = normalize({ map: { game_time: 212, clock_time: 22, matchid: 'fallback' } }, 1_000);
+  assert.equal(snapshot.gameTime, 22);
+  assert.equal(snapshot.rawGameTime, 212);
+});
+
 test('Payload incompleto não inventa dados', () => {
   const result = normalizeGsi({ map: {} });
   assert.equal(result.heroName, null);

@@ -46,7 +46,8 @@ export function Dashboard() {
     finally { setBusy(false); }
   }
   const diagnosticFields = [
-    ['Herói', snapshot.heroName], ['Atividade', snapshot.playerActivity], ['Nível', snapshot.heroLevel], ['Tempo', snapshot.gameTime],
+    ['Herói', snapshot.heroName], ['Atividade', snapshot.playerActivity], ['Nível', snapshot.heroLevel], ['Tempo calibrado', snapshot.gameTime],
+    ['Tempo bruto GSI', snapshot.rawGameTime ?? null],
     ['Last hits', snapshot.lastHits], ['Negações', snapshot.denies], ['Patrimônio', snapshot.netWorth],
     ['GPM', snapshot.gpm], ['Abates', snapshot.kills], ['Mortes', snapshot.deaths], ['Assistências', snapshot.assists],
   ] as const;

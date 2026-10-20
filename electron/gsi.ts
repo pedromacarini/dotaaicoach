@@ -5,6 +5,7 @@ import type { GameSnapshot, InventoryArea, InventorySlot, InventorySnapshot } fr
 export const GSI_PORT = 3199;
 const MAX_BODY_BYTES = 1024 * 1024;
 const TARGET_PATH = '/gsi';
+const IN_PROGRESS = 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS';
 export type GsiServerEvent = { type: 'accepted' | 'rejected'; at: number; problem?: string };
 
 type RecordValue = Record<string, unknown>;
@@ -60,6 +61,7 @@ export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapsh
   return {
     source: 'gsi', connected: true, receivedAt: timestamp,
     gameTime: num(map.game_time) ?? num(map.clock_time),
+    rawGameTime: num(map.game_time),
     matchId: identifier(map.matchid) ?? identifier(map.match_id),
     gameState: str(map.game_state),
     playerActivity: str(player.activity),
@@ -74,6 +76,39 @@ export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapsh
     deaths: num(player.deaths),
     assists: num(player.assists),
     inventory: normalizeInventory(payload.items),
+  };
+}
+
+/**
+ * O Dota inclui estratégia/pré-jogo em map.game_time. Este normalizador mantém
+ * um baseline por partida e só publica o relógio depois de GAME_IN_PROGRESS.
+ * Sem game_state, clock_time é o fallback mais fiel; se também faltar, mantém
+ * game_time sem calibração para não zerar uma partida iniciada no meio.
+ */
+export function createGsiSnapshotNormalizer(): (input: unknown, timestamp?: number) => GameSnapshot {
+  let matchId: string | null = null;
+  let baseline: number | null = null;
+  return (input, timestamp = Date.now()) => {
+    const snapshot = normalizeGsi(input, timestamp);
+    const payload = record(input);
+    const map = record(payload.map);
+    const rawGameTime = num(map.game_time);
+    const clockTime = num(map.clock_time);
+    const reliableMatchChanged = Boolean(snapshot.matchId && matchId && snapshot.matchId !== matchId);
+    if (reliableMatchChanged) baseline = null;
+    if (snapshot.matchId) matchId = snapshot.matchId;
+
+    if (snapshot.gameState === null) {
+      return { ...snapshot, rawGameTime, gameTime: clockTime ?? rawGameTime };
+    }
+    if (snapshot.gameState !== IN_PROGRESS) {
+      baseline = null;
+      matchId = snapshot.matchId;
+      return { ...snapshot, rawGameTime, gameTime: null };
+    }
+    if (rawGameTime === null) return { ...snapshot, rawGameTime, gameTime: clockTime };
+    if (baseline === null) baseline = rawGameTime;
+    return { ...snapshot, rawGameTime, gameTime: Math.max(0, rawGameTime - baseline) };
   };
 }
 
@@ -106,6 +141,7 @@ export function generateToken(): string { return crypto.randomBytes(24).toString
 
 export function startGsiServer(token: string, onSnapshot: (value: GameSnapshot) => void,
   onEvent?: (event: GsiServerEvent) => void): Promise<http.Server> {
+  const normalizeSnapshot = createGsiSnapshotNormalizer();
   const server = http.createServer((req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     if (req.url !== TARGET_PATH || req.method !== 'POST') { res.writeHead(404).end(); return; }
@@ -133,7 +169,7 @@ export function startGsiServer(token: string, onSnapshot: (value: GameSnapshot) 
           onEvent?.({ type: 'rejected', at: Date.now(), problem: 'Token GSI inválido.' });
           res.writeHead(401).end(); return;
         }
-        const snapshot = normalizeGsi(obj);
+        const snapshot = normalizeSnapshot(obj);
         onSnapshot(snapshot);
         onEvent?.({ type: 'accepted', at: snapshot.receivedAt ?? Date.now() });
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' }).end('OK');

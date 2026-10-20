@@ -26,6 +26,8 @@ Implementado em 2026-10-20 sobre Electron 37.x.
 
 O renderer não escolhe arquivos, não recebe token GSI, não acessa `allplayers` e não consulta OpenDota por pacote. A página usa somente o catálogo local carregado sob demanda. O smoke substitui qualquer consulta da recomendação já existente por respostas locais controladas.
 
+Itens vistos durante estratégia/pré-jogo não viram “primeira observação”. A captura começa em `GAME_IN_PROGRESS`, usando o relógio calibrado a partir de zero.
+
 ## Verificação automatizada
 
 - GSI: campo ausente, vazio observado, slot desconhecido, ativo, mochila, baú, TP e neutro.

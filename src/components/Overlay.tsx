@@ -74,6 +74,7 @@ export function Overlay() {
         {!snapshot.heroName && <div className="advice-state">As recomendações aparecem quando o herói for detectado.</div>}
         {snapshot.heroName && loading && !advice && <div className="advice-state">Buscando build e skills…</div>}
         {snapshot.heroName && error && !advice && <div className="advice-state error">Sem recomendação: {error}</div>}
+        {snapshot.heroName && error && advice && <div className="advice-state error">{error}</div>}
         {advice && <div className={`advice-grid ${modules.skill !== modules.items ? 'single' : ''}`}>
           {modules.skill && <div className="next-skill">
             <small>PRÓXIMO UP {advice.nextSkillLevel ? `· NV. ${advice.nextSkillLevel}` : ''}</small>

@@ -66,7 +66,11 @@ export function createItemTracker(): ItemTracker {
       if (snapshot.gameTime !== null) previousGameTime = snapshot.gameTime;
 
       const alreadySeen = new Set(observations.map(value => value.itemInternalName));
-      for (const slot of snapshot.inventory.slots) {
+      const explicitNonPlayingState = snapshot.source === 'gsi' && snapshot.gameState !== null &&
+        snapshot.gameState.startsWith('DOTA_GAMERULES_STATE_') &&
+        snapshot.gameState !== 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS';
+      const canObserveItems = !explicitNonPlayingState;
+      for (const slot of canObserveItems ? snapshot.inventory.slots : []) {
         if (slot.state !== 'present' || !slot.itemInternalName || alreadySeen.has(slot.itemInternalName)) continue;
         observations.push({
           itemInternalName: slot.itemInternalName,
