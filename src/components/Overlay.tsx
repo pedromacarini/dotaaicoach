@@ -16,11 +16,13 @@ export function Overlay() {
   const spokenAlerts = useRef(new Set<string>());
   useEffect(() => {
     for (const banner of notificationCenter.runtime.active) {
-      if (spokenAlerts.current.has(banner.id) || banner.audio !== 'beep') continue;
+      if (spokenAlerts.current.has(banner.id) || banner.audio !== 'voice') continue;
       spokenAlerts.current.add(banner.id);
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance(banner.title));
+        const utterance = new SpeechSynthesisUtterance(banner.title);
+        utterance.lang = 'pt-BR'; utterance.rate = 1.05; utterance.volume = 1;
+        window.speechSynthesis.speak(utterance);
       }
     }
     if (spokenAlerts.current.size > 100) spokenAlerts.current.clear();

@@ -217,7 +217,7 @@ export interface MatchSessionUpdate {
 
 export type NotificationMode = 'normal' | 'turbo';
 export type NotificationPosition = Position | 'all';
-export type NotificationAudioMode = 'silent' | 'beep';
+export type NotificationAudioMode = 'silent' | 'beep' | 'voice';
 
 export interface NotificationRule {
   id: string;

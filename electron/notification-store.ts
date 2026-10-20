@@ -46,7 +46,7 @@ export function validateNotificationRule(value: unknown): NotificationRule {
   if (repeat === null && until !== null) throw new Error('Limite requer uma repetição.');
   if (!Number.isInteger(raw.durationSeconds) || Number(raw.durationSeconds) < 2 || Number(raw.durationSeconds) > 30)
     throw new Error('Duração deve ficar entre 2 e 30 segundos.');
-  if (raw.audio !== 'silent' && raw.audio !== 'beep') throw new Error('Modo de áudio inválido.');
+  if (raw.audio !== 'silent' && raw.audio !== 'beep' && raw.audio !== 'voice') throw new Error('Modo de áudio inválido.');
   return { id, enabled: raw.enabled, title, atSeconds: Number(raw.atSeconds), position: position as NotificationRule['position'],
     tags, repeatEverySeconds: repeat as number | null, repeatUntilSeconds: until as number | null,
     durationSeconds: Number(raw.durationSeconds), audio: raw.audio };
