@@ -2,6 +2,7 @@ import { formatClock, useOverlay } from './useOverlay';
 import { useMatchAdvice } from './useMatchAdvice';
 import { useEffect, useRef } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+import { evaluateFarm } from '../core/farm-benchmark';
 const value = (n: number | null) => n === null ? '—' : n.toLocaleString('pt-BR');
 const positionName = ['','Carry','Mid','Offlane','Sup. 4','Sup. 5'];
 export function Overlay() {
@@ -9,6 +10,7 @@ export function Overlay() {
   const modules = preferences.overlayLayout.modules;
   const hasAdviceModule = modules.skill || modules.items;
   const { advice, loading, error } = useMatchAdvice(snapshot, preferences.position, hasAdviceModule);
+  const farm = evaluateFarm(preferences.position, snapshot.gameTime, snapshot.lastHits);
   const resizeCleanup = useRef<() => void>(() => undefined);
   useEffect(() => () => resizeCleanup.current(), []);
   function beginResize(event: ReactPointerEvent<HTMLButtonElement>): void {
@@ -61,10 +63,10 @@ export function Overlay() {
     style={{ '--overlay-scale': String(status.overlayEffectiveScale) } as CSSProperties}>
     <div className="overlay-panel">
       {status.overlayEditing && <div className="overlay-editbar"><span>{preferences.overlayLayout.locked ? 'POSIÇÃO BLOQUEADA' : 'ARRASTE AQUI · REDIMENSIONE PELA ALÇA INFERIOR DIREITA'}</span><button type="button" onClick={() => void window.dotaOverlay.setOverlayEditing(false).catch(() => undefined)}>Concluir edição</button></div>}
-      <div className="overlay-header"><strong>◈ DOTA OPEN</strong><span className={`live-marker ${snapshot.source}`}>{snapshot.source === 'gsi' ? (snapshot.connected ? 'AO VIVO' : 'SEM SINAL') : snapshot.source === 'demo' ? 'DEMONSTRAÇÃO' : 'AGUARDANDO'}</span></div>
+      <div className="overlay-header"><strong>◈ DOTA IACOACH</strong><span className={`live-marker ${snapshot.source}`}>{snapshot.source === 'gsi' ? (snapshot.connected ? 'AO VIVO' : 'SEM SINAL') : snapshot.source === 'demo' ? 'DEMONSTRAÇÃO' : 'AGUARDANDO'}</span></div>
       {modules.stats && <><div className="overlay-line"><span>{snapshot.heroName ?? 'Aguardando Dota 2'}</span><b>{formatClock(snapshot.gameTime)}</b></div>
       <div className="overlay-stats">
-        <div><small>LAST HITS</small><b>{value(snapshot.lastHits)}</b></div>
+        <div className={farm ? `farm-${farm.classification}` : ''}><small>LAST HITS</small><b>{value(snapshot.lastHits)}{farm ? <em> / média {farm.targetLastHits}</em> : null}</b></div>
         <div><small>DENIES</small><b>{value(snapshot.denies)}</b></div>
         <div><small>NET WORTH</small><b>{value(snapshot.netWorth)}</b></div>
         <div><small>GPM</small><b>{value(snapshot.gpm)}</b></div>
@@ -81,6 +83,7 @@ export function Overlay() {
             {advice.nextSkill ? <div className="advice-asset"><img src={advice.nextSkill.imageUrl} alt=""/><strong>{advice.nextSkill.name}</strong></div>
               : <span className="advice-unavailable">Sem próximo up na amostra</span>}
           </div>}
+          {modules.skill && advice.talents.length > 0 && <div className="talent-advice"><small>TALENTOS</small>{advice.talents.map(talent => <div key={talent.level}><b>NV. {talent.level}</b><span className={talent.recommended?.key === talent.left?.key ? 'recommended' : ''}>{talent.left?.name ?? '—'}</span><span className={talent.recommended?.key === talent.right?.key ? 'recommended' : ''}>{talent.right?.name ?? '—'}</span></div>)}</div>}
           {modules.items && <div className="phase-items">
             <small>ITENS · {advice.itemPhase.toUpperCase()}</small>
             <div className="advice-items">{advice.items.map(item => <div key={item.id} title={item.name}><img src={item.imageUrl} alt={item.name}/><span>{item.name}</span></div>)}</div>
@@ -89,7 +92,7 @@ export function Overlay() {
       </div>}
       {modules.items && <div className="overlay-item-timing">
         <div><small>PRIMEIRA OBSERVAÇÃO · NÃO É COMPRA</small><strong>{itemTiming.inventory.observation === 'unknown' ? 'Inventário ainda desconhecido' : `${itemTiming.observations.length} tipo(s) observado(s)`}</strong></div>
-        {itemTiming.comparisons.length > 0 && (() => { const last = itemTiming.comparisons[itemTiming.comparisons.length - 1]; return <span className={last.verdict}>{last.observation.itemInternalName.replace(/^item_/, '').replaceAll('_', ' ')} · {last.verdict === 'no-sample' ? 'sem amostra' : last.verdict === 'unknown-time' ? 'tempo desconhecido' : last.verdict === 'early' ? 'adiantado' : last.verdict === 'late' ? 'atrasado' : 'no esperado'}</span>; })()}
+        {itemTiming.comparisons.length > 0 && (() => { const last = itemTiming.comparisons[itemTiming.comparisons.length - 1]; const delta = last.deltaSeconds; const deltaLabel = delta === null ? '' : ` ${delta >= 0 ? '+' : '−'}${formatClock(Math.abs(delta))}`; return <span className={last.verdict}>{last.observation.itemInternalName.replace(/^item_/, '').replaceAll('_', ' ')} · {last.verdict === 'no-sample' ? 'sem amostra' : last.verdict === 'unknown-time' ? 'tempo desconhecido' : last.verdict === 'early' ? 'adiantado' : last.verdict === 'late' ? 'atrasado' : 'no esperado'}{deltaLabel}</span>; })()}
       </div>}
       {modules.alerts && notificationCenter.runtime.active.length > 0 && <div className="overlay-alerts" aria-live="assertive">{notificationCenter.runtime.active.map(banner => <div className="overlay-alert" key={banner.id}><div><small>{banner.tags.map(tag => `#${tag}`).join(' ') || 'LEMBRETE'}</small><strong>{banner.title}</strong><span>{formatClock(banner.scheduledAt)}</span></div>{status.overlayEditing && <button type="button" aria-label={`Dispensar ${banner.title}`} onClick={() => void window.dotaOverlay.dismissNotification(banner.id)}>×</button>}</div>)}</div>}
       {status.overlayEditing && modules.alerts && notificationCenter.runtime.active.length === 0 && <div className="overlay-alert-preview">MÓDULO DE ALERTAS · NENHUM ALERTA ATIVO</div>}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildMatchAdvice, type MatchAdvice } from '../core/advice';
 import { loadAdviceRemoteData, selectCurrentAdvicePayload } from '../core/advice-loader';
-import { loadSection, type AbilityRecord, type HeroRecord, type ItemRecord } from '../data/catalog';
+import { loadSection, type AbilityRecord, type HeroAbilitiesRecord, type HeroRecord, type ItemRecord } from '../data/catalog';
 import type { GameSnapshot, Position } from '../shared/contracts';
 
 interface AdvicePayload {
@@ -9,6 +9,7 @@ interface AdvicePayload {
   libraryUrl: string;
   heroes: HeroRecord[];
   abilities: AbilityRecord[];
+  heroAbilities: HeroAbilitiesRecord[];
   items: ItemRecord[];
   abilityIds: Record<string, string>;
   itemIds: Record<string, string>;
@@ -39,11 +40,12 @@ export function useMatchAdvice(snapshot: GameSnapshot, position: Position, enabl
     setState(previous => ({ ...previous, loading: true, error: null,
       payload: previous.payload?.requestKey === requestKey ? previous.payload : null }));
     void (async () => {
-      const [libraryUrl, heroes, abilities, items, extrasModule] = await Promise.all([
+      const [libraryUrl, heroes, abilities, items, heroAbilities, extrasModule] = await Promise.all([
         window.dotaOverlay.getLibraryUrl(),
         loadSection('heroes') as Promise<HeroRecord[]>,
         loadSection('abilities') as Promise<AbilityRecord[]>,
         loadSection('items') as Promise<ItemRecord[]>,
+        loadSection('heroAbilities') as Promise<HeroAbilitiesRecord[]>,
         import('../data/generated/extras.json'),
       ]);
       if (!libraryUrl) throw new Error('Biblioteca local indisponível.');
@@ -70,7 +72,7 @@ export function useMatchAdvice(snapshot: GameSnapshot, position: Position, enabl
         lastRemoteByHero.current.set(remoteKey, remote);
         const warnings = [...new Set([remote.warning, ...routeWarnings].filter((value): value is string => Boolean(value)))];
         setState({ loading: false, error: warnings.join(' ') || null, payload: {
-          requestKey, libraryUrl, heroes, abilities, items,
+          requestKey, libraryUrl, heroes, abilities, items, heroAbilities,
           abilityIds: extras.ability_ids ?? {}, itemIds: extras.item_ids ?? {},
           recommendations: remote.recommendations, popularity: remote.popularity,
         } });
