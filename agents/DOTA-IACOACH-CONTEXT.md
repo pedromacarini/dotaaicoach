@@ -28,6 +28,8 @@ Ao concluir um item, atualizar esta lista com status e parar para o próximo ped
 
 Rodar `npm.cmd test` quando possível. Para mudanças rápidas: `npm.cmd run build` e testes focados. Abrir o app e dizer exatamente o que o usuário deve observar. Falhas por porta GSI ocupada devem ser separadas de falhas de código.
 
+Durante a execução dos oito itens prioritários, não abrir o app entre blocos; validar somente por build/testes. Reabrir apenas quando os oito itens estiverem concluídos ou quando o usuário pedir explicitamente.
+
 ## Guardrails
 
 Não copiar código/ativos/dados privados de outros overlays. Não inferir visão inimiga. Não chamar backend externo para telemetria sem consentimento. Não tratar `net_worth` ausente como zero.
