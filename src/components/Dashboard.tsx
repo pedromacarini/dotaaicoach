@@ -7,6 +7,7 @@ import { OverlaySettings } from './OverlaySettings';
 import { NotificationPage } from './NotificationPage';
 import { ItemTimingPage } from './ItemTimingPage';
 import { DraftPage } from './DraftPage';
+import { ONBOARDING_COMPLETE_VALUE, ONBOARDING_STORAGE_KEY, shouldShowOnboarding } from '../core/onboarding';
 const value = (n: number | null) => n === null ? '—' : n.toLocaleString('pt-BR');
 const positions: Array<{id:Position;name:string;detail:string}> = [
   {id:1,name:'Carry',detail:'Safe lane · prioridade de farm'},
@@ -23,8 +24,22 @@ export function Dashboard() {
   const [activationCode, setActivationCode] = useState('');
   const apiAvailable = Boolean(window.dotaOverlay);
   useEffect(() => { if (localProfile && profileName === '') setProfileName(localProfile.displayName); }, [localProfile, profileName]);
-  const [page,setPage] = useState<'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'notifications'|'settings'>('overview');
+  const [page,setPage] = useState<'onboarding'|'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'notifications'|'settings'>(() => {
+    try { return shouldShowOnboarding(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)) ? 'onboarding' : 'overview'; }
+    catch { return 'onboarding'; }
+  });
   const [libraryHeroKey,setLibraryHeroKey] = useState<string | null>(null);
+  function finishOnboarding(): void {
+    try { window.localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_COMPLETE_VALUE); } catch { /* O guia segue utilizável. */ }
+    setMessage('Configuração inicial concluída. Você pode reabrir o guia pelo menu.');
+    setPage('overview');
+  }
+  async function previewSound(): Promise<void> {
+    setBusy(true); setMessage('');
+    try { await window.dotaOverlay.previewNotificationSound(); setMessage('Som de teste reproduzido. Alertas de voz podem ser escolhidos no Cronograma.'); }
+    catch (e) { setMessage(`Não foi possível testar o som: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
   async function saveConfig() {
     setBusy(true); setMessage('');
     try {
@@ -100,6 +115,7 @@ export function Dashboard() {
   return <div className="dashboard">
     <aside className="sidebar">
       <div className="brand"><span className="brand-icon">◈</span><div><strong>DOTA OPEN</strong><small>OVERLAY · 0.2.1</small></div></div>
+      <button type="button" className={`menu-item menu-button ${page === 'onboarding' ? 'current' : ''}`} onClick={() => { setPage('onboarding'); setMessage(''); }}>◇ Início guiado</button>
       <button type="button" className={`menu-item menu-button ${page === 'overview' ? 'current' : ''}`} onClick={() => setPage('overview')}>▣ Visão geral</button>
       <button type="button" className={`menu-item menu-button ${page === 'library' ? 'current' : ''}`} onClick={() => setPage('library')}>◈ Biblioteca Dota 2</button>
       <button type="button" className={`menu-item menu-button ${page === 'gsi' ? 'current' : ''}`} onClick={() => { setPage('gsi'); setMessage(''); }}>◉ GSI local</button>
@@ -156,6 +172,15 @@ export function Dashboard() {
       {message && <div className="notice">{message}</div>}
       <div className="footerline"><span>Layout validado e mantido dentro da área útil do monitor.</span><span>Salvo apenas neste computador</span></div>
     </> : <>
+      {page === 'onboarding' && <section className="settings-card" aria-labelledby="onboarding-title">
+        <div className="card-top"><div><div className="eyebrow">PRIMEIROS PASSOS</div><h2 id="onboarding-title">Deixe o assistente pronto</h2><p>Escolha sua posição, conecte o Dota, confira o som e decida sobre a ativação.</p></div><span className="mini-label">CONFIGURAÇÃO LOCAL</span></div>
+        <div className="position-grid">{positions.map(position => <button type="button" key={position.id} disabled={busy} className={preferences.position===position.id?'selected':''} aria-pressed={preferences.position===position.id} onClick={() => void setPosition(position.id)}><span>{position.id}</span><strong>{position.name}</strong><small>{position.detail}</small></button>)}</div>
+        <div className="control-row"><div><strong>GSI do Dota 2</strong><small>{gsiDiagnostics.installation.configCurrent ? 'Configuração instalada; valide em lobby ou partida contra bots.' : 'Instale a configuração oficial pelo diagnóstico.'}</small></div><button type="button" className="secondary-button" onClick={() => { setPage('gsi'); setMessage(''); }}>Abrir diagnóstico</button></div>
+        <div className="control-row"><div><strong>Som e voz</strong><small>O Cronograma permite escolher alertas silenciosos, som ou voz em português.</small></div><button type="button" className="secondary-button" disabled={busy || !apiAvailable} onClick={() => void previewSound()}>♪ Testar som</button></div>
+        <div className="control-row"><div><strong>Ativação</strong><small>{license?.valid ? 'Licença local ativa.' : 'Opcional: continue no modo gratuito ou use o cartão de ativação na Visão geral.'}</small></div><span className={`mini-label ${license?.valid ? 'ok' : ''}`}>{license?.valid ? 'ATIVA' : 'OPCIONAL'}</span></div>
+        <button type="button" className="primary-button" onClick={finishOnboarding}>Concluir e abrir o painel</button>
+        {message && <div className="notice" role="status">{message}</div>}
+      </section>}
       <div className="page-top"><div><div className="eyebrow">PAINEL DE CONTROLE</div><h1>Visão geral</h1><p>Seu Dota 2, seus dados, sua interface.</p></div><div className="version">MVP OPEN SOURCE</div></div>
       <div className="status-row"><div className={`status-pill ${snapshot.source}`}><span className="dot"/> {snapshot.source === 'demo' ? 'Demonstração ativa' : snapshot.connected ? 'Recebendo partida' : 'Sem partida conectada'}</div><div className="status-text">Servidor local: {status.gsiListening ? `127.0.0.1:${status.gsiPort}` : 'indisponível'}</div></div>
       {status.error && <div className="notice error">{status.error}</div>}
