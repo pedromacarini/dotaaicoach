@@ -8,7 +8,7 @@ projectPath = files.GetParentFolderName(WScript.ScriptFullName)
 electronPath = projectPath & "\node_modules\electron\dist\electron.exe"
 
 If Not files.FileExists(electronPath) Then
-  MsgBox "O aplicativo ainda não foi preparado. Execute npm install uma vez.", 16, "Dota Open Overlay"
+  MsgBox "O aplicativo ainda não foi preparado. Execute npm install uma vez.", 16, "DotaIACoach"
   WScript.Quit 1
 End If
 

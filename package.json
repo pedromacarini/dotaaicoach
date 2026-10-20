@@ -1,8 +1,8 @@
 {
-  "name": "dota-open-overlay",
+  "name": "dota-iacoach",
   "version": "0.2.1",
   "private": true,
-  "description": "Overlay comunitário experimental com biblioteca aberta e atualizável do Dota 2",
+  "description": "Coach de overlay comunitário, local e atualizável para Dota 2",
   "main": "dist-electron/electron/main.js",
   "license": "MIT",
   "scripts": {
@@ -38,8 +38,8 @@
     "wait-on": "^8.0.0"
   },
   "build": {
-    "appId": "dev.community.dotaopenoverlay",
-    "productName": "Dota Open Overlay",
+    "appId": "dev.community.dota-iacoach",
+    "productName": "DotaIACoach",
     "asar": true,
     "files": [
       "dist/**/*",

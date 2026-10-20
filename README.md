@@ -3,8 +3,9 @@
 Esta versão acrescenta uma biblioteca pesquisável de **heróis, itens, habilidades, talentos, habilidades neutras e patches**, alimentada pelo projeto MIT `odota/dotaconstants` instalado via npm. Os arquivos `src/data/generated/*.json` incluídos no ZIP são placeholders; **o catálogo é preenchido no seu computador** por `npm install` + `npm run data:sync` (ou automaticamente antes de `npm run dev`). Não há cópia de datasets do aplicativo Aura.
 
 Para abrir depois da preparação inicial, dê duplo clique em
-`ABRIR-DOTA-OPEN-OVERLAY.vbs`. O lançador abre o Electron sem terminal. Há
-também `ABRIR-DOTA-OPEN-OVERLAY.cmd` como alternativa de diagnóstico. Arquivos
+`ABRIR-DOTA-IACOACH.vbs`. O lançador abre o Electron sem terminal. Há
+também `ABRIR-DOTA-IACOACH.cmd` como alternativa de diagnóstico. Os lançadores
+com o nome antigo permanecem como compatibilidade local. Arquivos
 `.ini` armazenam configuração no Windows e não são executáveis, por isso o
 atalho usa o formato `.vbs`.
 
@@ -28,7 +29,7 @@ Leia [FONTES](docs/DATA_SOURCES.md), [MAPA DA REFERÊNCIA AURA](docs/REFERENCE_A
 
 ---
 
-# Dota Open Overlay
+# DotaIACoach
 
 > **MVP experimental — projeto independente, gratuito e de código aberto.**
 > Não afiliado à Valve, Dota 2, Steam, Dota2Brasil ou Aura.
@@ -96,7 +97,7 @@ npm.cmd run package:win
    ```
 
    A pasta da biblioteca Steam **pode variar**. O app cria somente sua própria configuração e não substitui integrações de outros softwares.
-4. Reinicie o Dota 2, se já estiver aberto. Inicie uma partida de teste ou lobby, mantendo o Dota Open Overlay aberto.
+4. Reinicie o Dota 2, se já estiver aberto. Inicie uma partida de teste ou lobby, mantendo o DotaIACoach aberto.
 5. Volte ao diagnóstico para conferir o último pacote e os campos recebidos. O botão **Salvar CFG manualmente** permanece disponível como alternativa.
 
 Se não receber dados, consulte [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).

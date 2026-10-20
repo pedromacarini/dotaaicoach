@@ -395,7 +395,7 @@ function loadReact(win: BrowserWindow, mode: 'dashboard' | 'overlay'): void {
 function createDashboard(): void {
   dashboard = new BrowserWindow({
     width: 1500, height: 900, minWidth: 980, minHeight: 680,
-    backgroundColor: '#10121e', title: 'Dota Open Overlay', autoHideMenuBar: true,
+    backgroundColor: '#10121e', title: 'DotaIACoach', autoHideMenuBar: true,
     show: !smokeMode,
     webPreferences: { preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false, contextIsolation: true, sandbox: true },
@@ -738,8 +738,8 @@ function installHandlers(): void {
     const confirmation = await dialog.showMessageBox(dashboard!, {
       type: 'question', title: 'Instalar integração do Dota 2',
       message: gsiDiagnostics.installation.configInstalled
-        ? 'Atualizar a configuração GSI do Dota Open Overlay?'
-        : 'Instalar a configuração GSI do Dota Open Overlay?',
+        ? 'Atualizar a configuração GSI do DotaIACoach?'
+        : 'Instalar a configuração GSI do DotaIACoach?',
       detail: `O aplicativo gravará somente este arquivo:\n${target}\n\nO Dota 2 precisa ser reiniciado se já estiver aberto.`,
       buttons: ['Cancelar', gsiDiagnostics.installation.configInstalled ? 'Atualizar' : 'Instalar'],
       defaultId: 1, cancelId: 0, noLink: true,

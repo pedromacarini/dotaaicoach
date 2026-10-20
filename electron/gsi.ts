@@ -114,7 +114,7 @@ export function createGsiSnapshotNormalizer(): (input: unknown, timestamp?: numb
 
 export function makeGsiConfig(token: string): string {
   if (!/^[a-f0-9]{48}$/.test(token)) throw new Error('Token inválido.');
-  return `"Dota Open Overlay"
+  return `"DotaIACoach"
 {
     "uri"           "http://127.0.0.1:${GSI_PORT}${TARGET_PATH}"
     "timeout"       "5.0"

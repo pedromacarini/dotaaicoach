@@ -1,6 +1,10 @@
 # Checklist completa de paridade funcional
 
-Atualizado em 2026-10-20. Este documento é a fonte rastreável da paridade entre o Dota Open Overlay e o produto de referência analisado estaticamente.
+Atualizado em 2026-10-20. Este documento é a fonte rastreável da paridade entre o DotaIACoach e o produto de referência analisado estaticamente.
+
+## Auditoria complementar do overlay público
+
+Em 2026-10-20 foi revisada a página pública do produto de referência: [dota2brasil.com/overlay](https://dota2brasil.com/overlay). Ela descreve Flash Farm, Meta Items, Power Spike, Skill Certa com talentos, notificações por voz e cronograma editável, MiniMapa Tracker de última posição, Counter Pick 5v5 com confiança/medalha, auto-accept e onboarding/conta. A mesma página marca como “em breve” rota de farme, treinador por voz, conferência dos times e aviso de sumiço. Isso é evidência de funcionalidade declarada, não autorização para copiar código, ativos ou dados privados.
 
 ## Como ler
 
@@ -35,7 +39,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 | 🟡 | Builds de partidas recentes analisadas pela OpenDota | Corrigir rótulo “profissional” onde a consulta não filtra liga/jogador | 3 |
 | ✅ | Próximo up de habilidade por posição | Validar com mais amostras e patch | Base |
 | ✅ | Guia local editável | Perfis/importação futura | Base |
-| 🔵 | Talentos, inatas e destaque calibrado sobre o jogo | Depende de captura/calibração opt-in | 7 |
+| 🟡 | Talentos e inatas recomendados junto da skill build | Fonte autoral/versionada; destaque calibrado depende de captura opt-in | 7 |
 
 ## Partida, estatísticas e alertas
 
@@ -43,11 +47,12 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 |---|---|---|---:|
 | ✅ | Benchmark experimental de last hits por posição | Calibrar com partidas reais | Base |
 | 🟡 | Patrimônio esperado e resumo pós-partida | Fonte/amostra e sessão real | 6/9 |
+| 🔵 | Patrimônio comparado à meta por minuto | Fonte pública/versionada e fórmula explicável | 6 |
 | ✅ | Cronograma, presets Normal/Turbo, repetição, tags, som e import/export | Validação manual dos diálogos e jogo real | 2 |
 | 🟡 | Inventário próprio normalizado e estado desconhecido explícito | Fixture real dos slots GSI | 3 |
 | 🟡 | Primeira observação de itens e histórico da build | Validar cargas, combinação e reconexão no Dota real | 3 |
 | 🟡 | Comparação de timing com benchmark rotulado | Substituir a fixture sintética por amostra pública; diferença semântica já documentada | 3 |
-| 🔵 | Timers adicionais de objetivos versionados por patch | Somente eventos observáveis | 6 |
+| 🟡 | Notificações de objetivos e cronograma de gameplay | Tela/regras locais prontas; falta voz/TTS e presets por função | 6/8 |
 
 ## Draft e modos
 
@@ -85,7 +90,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 | 🔵 | Coleta e comparação de ouro dos camps | Catálogo/versionamento próprio | 6 |
 | 🔵 | Classificação e atribuição de lane | Definir entradas legítimas e confiança | 6 |
 | 🔵 | Rastreamento/agrupamento de waves | Modelo próprio e validação | 6 |
-| 🔵 | Minimapa próprio no overlay | Sem desenhar informação oculta | 6 |
+| 🔵 | MiniMapa Tracker de última posição legítima | Implementar somente com evento GSI/captura permitido; sem visão oculta | 6/7 |
 | 🟠 | “Ghost creeps”/memória de visão | Somente se entrada legítima e política permitirem | Futuro |
 
 ## Captura, calibração e automação
@@ -95,7 +100,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 | 🔵 | Captura local opt-in com indicador e preview | API Electron oficial e threat model | 7 |
 | 🔵 | Calibração de inventário, skills, talentos e botão Ready | Perfis por resolução/DPI | 7 |
 | 🔵 | Diagnóstico visual com fixtures anonimizadas | Zero persistência/envio por padrão | 7 |
-| 🟠 | Auto-accept opcional | Gate de política Valve/Steam e revisão humana | 8 |
+| 🟠 | Auto-accept opcional | Gate de política Valve/Steam e revisão humana; não iniciar automaticamente | 8 |
 | 🚫 | Memória, DLL, driver, interceptação ou bypass | Fora do escopo | Nunca |
 
 ## Histórico, grupos, lobby e campeonato
