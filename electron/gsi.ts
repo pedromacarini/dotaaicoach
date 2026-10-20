@@ -10,7 +10,11 @@ export type GsiServerEvent = { type: 'accepted' | 'rejected'; at: number; proble
 
 type RecordValue = Record<string, unknown>;
 const record = (v: unknown): RecordValue => v && typeof v === 'object' && !Array.isArray(v) ? v as RecordValue : {};
-const num = (v: unknown): number | null => typeof v === 'number' && Number.isFinite(v) ? v : null;
+const num = (v: unknown): number | null => {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
+  return null;
+};
 const str = (v: unknown): string | null => typeof v === 'string' && v.length <= 120 ? v : null;
 const identifier = (v: unknown): string | null => {
   if (typeof v === 'string' && /^\d{1,24}$/.test(v)) return v;
@@ -70,7 +74,7 @@ export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapsh
     heroLevel: num(hero.level),
     lastHits: num(player.last_hits),
     denies: num(player.denies),
-    netWorth: num(player.net_worth),
+    netWorth: num(player.net_worth) ?? num(player.networth) ?? num(player.netWorth),
     gpm: num(player.gpm),
     kills: num(player.kills),
     deaths: num(player.deaths),
