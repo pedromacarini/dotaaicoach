@@ -14,6 +14,7 @@
     "start": "electron .",
     "test": "npm run build && node --test tests/*.test.cjs",
     "package:win": "npm run build && electron-builder --win nsis",
+    "release:installer": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/release-installer.ps1",
     "data:sync": "node scripts/sync-data.mjs",
     "data:update": "npm install dotaconstants@latest && npm run data:sync",
     "data:check": "node scripts/check-data.mjs",
@@ -74,7 +75,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "include": "build/installer.nsh"
-    }
+    },
+    "artifactName": "DotaIACoach-Setup-${version}.${ext}"
   },
   "engines": {
     "node": ">=22.12.0"
