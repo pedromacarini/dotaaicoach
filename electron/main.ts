@@ -16,6 +16,7 @@ import { createNotificationCenter, type NotificationCenter } from './notificatio
 import { createItemTracker, type ItemTracker } from '../src/core/item-tracker';
 import { createDraftStore, type DraftStore } from './draft-store';
 import { createProfileStore, type ProfileStore } from './profile-store';
+import { createLicenseStore, type LicenseStore } from './license-store';
 import type { Position } from '../src/shared/contracts';
 import {
   defaultSteamRoots, discoverDotaInstallation, inspectGsiInstallation, installGsiConfiguration,
@@ -36,6 +37,7 @@ let notificationCenter: NotificationCenter | null = null;
 let itemTracker: ItemTracker | null = null;
 let draftStore: DraftStore | null = null;
 let profileStore: ProfileStore | null = null;
+let licenseStore: LicenseStore | null = null;
 let snapshot: GameSnapshot = emptySnapshot();
 const librarySmokeOutput = process.argv
   .find(argument => argument.startsWith('--library-smoke-output='))
@@ -687,6 +689,8 @@ function installHandlers(): void {
   ipcMain.handle('preferences:get', () => preferencesStore?.get() ?? defaultPreferences());
   ipcMain.handle('profile:get', () => profileStore?.get());
   ipcMain.handle('profile:update', (event, patch: unknown) => { assertDashboard(event); if (!profileStore) throw new Error('Perfil local ainda não foi inicializado.'); return profileStore.update(patch); });
+  ipcMain.handle('license:get', () => licenseStore?.get());
+  ipcMain.handle('license:import', async event => { assertDashboard(event); if (!licenseStore || !dashboard) throw new Error('Licença local ainda não foi inicializada.'); const result = await dialog.showOpenDialog(dashboard, { title: 'Importar licença offline', properties: ['openFile'], filters: [{ name: 'Licença DotaIACoach', extensions: ['json'] }] }); if (result.canceled || !result.filePaths[0]) return licenseStore.get(); return licenseStore.importFile(result.filePaths[0]); });
   ipcMain.handle('gsi:diagnostics', () => gsiDiagnostics);
   ipcMain.handle('sessions:get', event => { assertDashboard(event); return matchSessions(); });
   ipcMain.handle('demo:set', (event, enabled: unknown) => {
@@ -922,6 +926,7 @@ else {
     authToken = getOrCreateToken();
     preferencesStore = createPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'));
     profileStore = createProfileStore(path.join(app.getPath('userData'), 'profile.json'));
+    licenseStore = createLicenseStore(path.join(app.getPath('userData'), 'license.json'));
     if (overlayDisabledAdviceSmokeOutput)
       preferencesStore.updateOverlayLayout({ modules: { skill: false, items: false } });
     const sessionHistory = createSessionHistoryStore(path.join(app.getPath('userData'), 'match-sessions.json'));

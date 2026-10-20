@@ -15,6 +15,7 @@ type ItemTimingState = import('../src/shared/contracts').ItemTimingState;
 type DraftScenarioState = import('../src/shared/contracts').DraftScenarioState;
 type DraftScenario = import('../src/shared/contracts').DraftScenario;
 type LocalProfile = import('../src/shared/contracts').LocalProfile;
+type LicenseStatus = import('../src/shared/contracts').LicenseStatus;
 
 const overlayBridge: DotaOverlayAPI = {
   getSnapshot: () => ipcRenderer.invoke('snapshot:get'),
@@ -26,6 +27,8 @@ const overlayBridge: DotaOverlayAPI = {
   getDraftScenarios: () => ipcRenderer.invoke('draft:get'),
   getLocalProfile: () => ipcRenderer.invoke('profile:get') as Promise<LocalProfile>,
   updateLocalProfile: patch => ipcRenderer.invoke('profile:update', patch),
+  getLicenseStatus: () => ipcRenderer.invoke('license:get') as Promise<LicenseStatus>,
+  importLicense: () => ipcRenderer.invoke('license:import') as Promise<LicenseStatus>,
   onSnapshot: handler => {
     const listener = (_event: Electron.IpcRendererEvent, value: GameSnapshot) => handler(value);
     ipcRenderer.on('snapshot:changed', listener);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AppPreferences, AppStatus, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LocalProfile, MatchSessionState, NotificationCenterState } from '../shared/contracts';
+import type { AppPreferences, AppStatus, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LicenseStatus, LocalProfile, MatchSessionState, NotificationCenterState } from '../shared/contracts';
 
 export const empty: GameSnapshot = {
   source: 'idle', connected: false, receivedAt: null, gameTime: null, matchId: null, gameState: null,
@@ -52,6 +52,7 @@ export function useOverlay() {
   const [itemTiming, setItemTiming] = useState<ItemTimingState>(defaultItemTiming);
   const [draftScenarios, setDraftScenarios] = useState<DraftScenarioState>(defaultDraftScenarios);
   const [localProfile, setLocalProfile] = useState<LocalProfile | null>(null);
+  const [license, setLicense] = useState<LicenseStatus | null>(null);
   useEffect(() => {
     let mounted = true;
     const tracksSessions = new URLSearchParams(window.location.search).get('mode') !== 'overlay';
@@ -82,6 +83,8 @@ export function useOverlay() {
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar estado do app: '+String(err)})); });
     if (tracksSessions) void api.getLocalProfile().then(v => { if (mounted) setLocalProfile(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar perfil local: '+String(err)})); });
+    if (tracksSessions) void api.getLicenseStatus().then(v => { if (mounted) setLicense(v); })
+      .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar licença local: '+String(err)})); });
     void api.getPreferences().then(v => { if (mounted) setPreferences(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar preferências: '+String(err)})); });
     void api.getGsiDiagnostics().then(v => { if (mounted) setGsiDiagnostics(v); })
@@ -96,5 +99,5 @@ export function useOverlay() {
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar drafts: '+String(err)})); });
     return () => { mounted = false; offSnapshot(); offStatus(); offPreferences(); offGsiDiagnostics(); offMatchSessions(); offNotifications(); offItemTiming(); offDraftScenarios(); };
   }, []);
-  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile };
+  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense };
 }

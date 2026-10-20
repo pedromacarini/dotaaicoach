@@ -16,7 +16,7 @@ const positions: Array<{id:Position;name:string;detail:string}> = [
   {id:5,name:'Suporte 5',detail:'Hard support · visão e proteção'},
 ];
 export function Dashboard() {
-  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile } = useOverlay();
+  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense } = useOverlay();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -42,6 +42,12 @@ export function Dashboard() {
     setBusy(true); setMessage('');
     try { const profile = await window.dotaOverlay.updateLocalProfile({ displayName: profileName, preferredPosition: preferences.position }); setLocalProfile(profile); setMessage('Perfil local salvo neste computador.'); }
     catch (e) { setMessage(`Erro ao salvar perfil: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
+  async function importLicense() {
+    setBusy(true); setMessage('');
+    try { setLicense(await window.dotaOverlay.importLicense()); setMessage('Licença offline importada e validada.'); }
+    catch (e) { setMessage(`Licença recusada: ${String(e)}`); }
     finally { setBusy(false); }
   }
   async function installConfig() {
@@ -93,6 +99,7 @@ export function Dashboard() {
         <div className="card-top"><div><h3>Perfil local</h3><p>Identidade somente deste computador. Não exige login nem envia dados.</p></div><span className="mini-label">ID {localProfile?.localId.slice(0, 8) ?? '—'}</span></div>
         <div className="notification-form"><label className="wide"><span>Nome exibido</span><input maxLength={40} value={profileName} onChange={event => setProfileName(event.target.value)}/></label><button type="button" className="primary-button" disabled={busy || !profileName.trim()} onClick={() => void saveProfile()}>Salvar perfil</button></div>
       </section>
+      <section className="settings-card compact"><div><h3>Licença offline</h3><p>{license?.reason ?? 'Verificando licença local.'}</p><small>{license?.valid ? `Plano premium · ${license.subject ?? 'sem titular'}` : 'Modo gratuito'}</small></div><button type="button" className="secondary-button" disabled={busy} onClick={() => void importLicense()}>Importar licença</button></section>
       <section className="settings-card">
         <div className="card-top"><div><h3>Pacotes recebidos</h3><p>O modo demonstração não conta aqui. Estes indicadores representam apenas dados enviados pelo Dota.</p></div><span className="mini-label">{gsiDiagnostics.packetsReceived} ACEITOS · {gsiDiagnostics.rejectedRequests} REJEITADOS</span></div>
         <div className="diagnostic-fields">{diagnosticFields.map(([label, fieldValue]) => {
