@@ -2,7 +2,7 @@ import { formatClock, useOverlay } from './useOverlay';
 import { useMatchAdvice } from './useMatchAdvice';
 import { useEffect, useRef } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
-import { evaluateFarm } from '../core/farm-benchmark';
+import { evaluateEconomy, evaluateFarm } from '../core/farm-benchmark';
 const value = (n: number | null) => n === null ? '—' : n.toLocaleString('pt-BR');
 const positionName = ['','Carry','Mid','Offlane','Sup. 4','Sup. 5'];
 export function Overlay() {
@@ -11,6 +11,20 @@ export function Overlay() {
   const hasAdviceModule = modules.skill || modules.items;
   const { advice, loading, error } = useMatchAdvice(snapshot, preferences.position, hasAdviceModule);
   const farm = evaluateFarm(preferences.position, snapshot.gameTime, snapshot.lastHits);
+  const netWorth = evaluateEconomy(preferences.position, snapshot.gameTime, snapshot.netWorth, 'netWorth');
+  const gpm = evaluateEconomy(preferences.position, snapshot.gameTime, snapshot.gpm, 'gpm');
+  const spokenAlerts = useRef(new Set<string>());
+  useEffect(() => {
+    for (const banner of notificationCenter.runtime.active) {
+      if (spokenAlerts.current.has(banner.id) || banner.audio !== 'beep') continue;
+      spokenAlerts.current.add(banner.id);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(banner.title));
+      }
+    }
+    if (spokenAlerts.current.size > 100) spokenAlerts.current.clear();
+  }, [notificationCenter.runtime.active]);
   const resizeCleanup = useRef<() => void>(() => undefined);
   useEffect(() => () => resizeCleanup.current(), []);
   function beginResize(event: ReactPointerEvent<HTMLButtonElement>): void {
@@ -68,8 +82,8 @@ export function Overlay() {
       <div className="overlay-stats">
         <div className={farm ? `farm-${farm.classification}` : ''}><small>LAST HITS</small><b>{value(snapshot.lastHits)}{farm ? <em> / média {farm.targetLastHits}</em> : null}</b></div>
         <div><small>DENIES</small><b>{value(snapshot.denies)}</b></div>
-        <div><small>NET WORTH</small><b>{value(snapshot.netWorth)}</b></div>
-        <div><small>GPM</small><b>{value(snapshot.gpm)}</b></div>
+        <div className={netWorth ? `farm-${netWorth.classification}` : ''}><small>NET WORTH</small><b>{value(snapshot.netWorth)}{netWorth ? <em> / média {netWorth.target.toLocaleString('pt-BR')}</em> : null}</b></div>
+        <div className={gpm ? `farm-${gpm.classification}` : ''}><small>GPM</small><b>{value(snapshot.gpm)}{gpm ? <em> / média {gpm.target}</em> : null}</b></div>
       </div></>}
       {hasAdviceModule && <div className="overlay-advice">
         <div className="advice-title"><span>GUIA AO VIVO · {positionName[preferences.position]}</span>{advice && <small>{advice.sampleSize} partidas</small>}</div>
@@ -83,7 +97,7 @@ export function Overlay() {
             {advice.nextSkill ? <div className="advice-asset"><img src={advice.nextSkill.imageUrl} alt=""/><strong>{advice.nextSkill.name}</strong></div>
               : <span className="advice-unavailable">Sem próximo up na amostra</span>}
           </div>}
-          {modules.skill && advice.talents.length > 0 && <div className="talent-advice"><small>TALENTOS</small>{advice.talents.map(talent => <div key={talent.level}><b>NV. {talent.level}</b><span className={talent.recommended?.key === talent.left?.key ? 'recommended' : ''}>{talent.left?.name ?? '—'}</span><span className={talent.recommended?.key === talent.right?.key ? 'recommended' : ''}>{talent.right?.name ?? '—'}</span></div>)}</div>}
+          {modules.skill && advice.talents.length > 0 && <div className="talent-advice"><small>TALENTOS</small>{advice.talents.map(talent => <div key={talent.level}><b>NV. {talent.level}{talent.level === 30 ? ' · FINAL' : ''}</b><span className={talent.recommended?.key === talent.left?.key ? 'recommended' : ''}>{talent.left?.name ?? '—'}</span><span className={talent.recommended?.key === talent.right?.key ? 'recommended' : ''}>{talent.right?.name ?? '—'}</span></div>)}</div>}
           {modules.items && <div className="phase-items">
             <small>ITENS · {advice.itemPhase.toUpperCase()}</small>
             <div className="advice-items">{advice.items.map(item => <div key={item.id} title={item.name}><img src={item.imageUrl} alt={item.name}/><span>{item.name}</span></div>)}</div>

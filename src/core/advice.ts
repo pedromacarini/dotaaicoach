@@ -83,6 +83,8 @@ export function buildMatchAdvice(input: MatchAdviceInput): MatchAdvice | null {
     const recommended = recommendedKey === undefined ? null : assets.find(value => value?.id === recommendedKey) ?? null;
     return { level: tier * 5 + 5, left: assets[0] ?? null, right: assets[1] ?? null, recommended };
   }).filter(value => value.left || value.right);
+  const finalTalent = talents.find(value => value.level === 25);
+  if (finalTalent) talents.push({ ...finalTalent, level: 30, recommended: null });
 
   const phase = phaseFor(input.gameTime);
   const popular = input.popularity[phase.key] ?? {};
