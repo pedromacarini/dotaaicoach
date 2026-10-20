@@ -7,8 +7,8 @@ $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 Set-Location $project
 
-$status = git status --short
-if ($status) {
+$trackedChanges = git diff --quiet; $stagedChanges = git diff --cached --quiet
+if (-not $trackedChanges -or -not $stagedChanges) {
   throw 'Há alterações não commitadas. Faça commit antes de gerar um instalador.'
 }
 
