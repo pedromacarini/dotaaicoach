@@ -14,6 +14,13 @@ Entregar um overlay local que acompanhe cada fase legítima da partida — draft
 - O endpoint OpenDota local fornece `itemPopularity`, `matchups` e `recommendations`, com cache e fallback stale; não fornece diretamente rotas, sinergia ou benchmark completo.
 - O instalador atual pede um código de 20 caracteres e usa o mesmo `appId` para atualização por cima.
 
+### Bloqueios encontrados antes de distribuir
+
+- **Licença:** o carregamento de uma ativação persistida deve validar a expiração somente contra a allowlist embutida, nunca contra `raw.expiresAt` editável no JSON. Corrigir antes de tratar o código como controle de acesso.
+- **Instalador:** a página NSIS exige 20 caracteres e não oferece “pular”; isso é incompatível com o modo gratuito documentado. Decidir explicitamente entre instalação de teste obrigatória ou botão “usar grátis”.
+- **Atualizador:** ainda não existe `electron-updater`, feed, assinatura Authenticode, rollout ou rollback. O instalador por cima é atualização manual, não atualização automática.
+- **Distribuição:** o release script precisa restaurar a versão se o empacotamento falhar e registrar artefato/hash/notas antes de publicar.
+
 ## Phase 0 — Descoberta, evidências e gates
 
 **Como serve ao objetivo principal:** impede que uma aparência semelhante seja confundida com uma implementação legítima e evita construir em APIs inexistentes.
