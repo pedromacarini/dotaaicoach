@@ -91,6 +91,7 @@ export function useMatchAdvice(snapshot: GameSnapshot, position: Position, enabl
     heroName: snapshot.heroName,
     heroLevel: snapshot.heroLevel,
     gameTime: snapshot.gameTime,
+    learnedAbilities: snapshot.learnedAbilities,
     position,
     ...currentPayload,
   }) : null, [enabled, currentPayload, snapshot.heroInternalName, snapshot.heroName, snapshot.heroLevel, snapshot.gameTime, position]);

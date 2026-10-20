@@ -18,6 +18,7 @@ export interface GameSnapshot {
   kills: number | null;
   deaths: number | null;
   assists: number | null;
+  learnedAbilities?: Record<string, number>;
   inventory: InventorySnapshot;
 }
 

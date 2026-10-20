@@ -21,6 +21,14 @@ const identifier = (v: unknown): string | null => {
   if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return String(Math.trunc(v));
   return null;
 };
+function normalizeLearnedAbilities(value: unknown): Record<string, number> {
+  const source = record(value); const result: Record<string, number> = {};
+  for (const entry of Object.values(source)) {
+    const ability = record(entry); const name = str(ability.name); const level = num(ability.level);
+    if (name && level !== null && level > 0) result[name] = level;
+  }
+  return result;
+}
 
 const INVENTORY_SLOTS: Array<{ key: string; area: InventoryArea }> = [
   ...Array.from({ length: 6 }, (_, index) => ({ key: `slot${index}`, area: 'active' as const })),
@@ -79,6 +87,7 @@ export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapsh
     kills: num(player.kills),
     deaths: num(player.deaths),
     assists: num(player.assists),
+    learnedAbilities: normalizeLearnedAbilities(payload.abilities),
     inventory: normalizeInventory(payload.items),
   };
 }
@@ -131,6 +140,7 @@ export function makeGsiConfig(token: string): string {
         "map"        "1"
         "player"     "1"
         "hero"       "1"
+        "abilities"  "1"
         "items"      "1"
     }
     "auth"

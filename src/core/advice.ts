@@ -41,6 +41,7 @@ export interface MatchAdviceInput {
   items: ItemCatalogEntry[];
   abilityIds: Record<string, string>;
   itemIds: Record<string, string>;
+  learnedAbilities?: Record<string, number>;
   recommendations: RecommendationData;
   popularity: PopularityData;
 }
@@ -63,7 +64,19 @@ export function buildMatchAdvice(input: MatchAdviceInput): MatchAdvice | null {
   if (!hero) return null;
 
   const sequence = input.recommendations.skillBuilds?.[0];
-  const nextIndex = Math.max(0, input.heroLevel ?? 0);
+  const actualLevels = input.learnedAbilities ?? {};
+  let nextIndex = Math.max(0, input.heroLevel ?? 0);
+  if (sequence?.abilityIds?.length && Object.keys(actualLevels).length > 0) {
+    const desired = new Map<string, number>();
+    const pendingIndex = sequence.abilityIds.findIndex(rawId => {
+      const key = input.abilityIds[String(rawId)];
+      if (!key || key.startsWith('special_bonus_')) return false;
+      const count = (desired.get(key) ?? 0) + 1;
+      desired.set(key, count);
+      return (actualLevels[key] ?? 0) < count;
+    });
+    if (pendingIndex >= 0) nextIndex = pendingIndex;
+  }
   const skillId = Number(sequence?.abilityIds?.[nextIndex]);
   const skillKey = Number.isFinite(skillId) ? input.abilityIds[String(skillId)] : undefined;
   const skill = skillKey ? input.abilities.find(value => value.key === skillKey) : undefined;
