@@ -39,7 +39,9 @@ export function createNotificationCenter(options: {
     const banners = scheduler.advance(time, config.rules, { mode: config.mode, position: getPosition() }, now);
     if (!banners.length) return expired;
     const existing = new Set(active.map(banner => banner.id));
-    active = [...active, ...banners.filter(banner => !existing.has(banner.id))].slice(-6);
+    active = [...active, ...banners.filter(banner => !existing.has(banner.id))]
+      .sort((left, right) => right.scheduledAt - left.scheduledAt)
+      .slice(0, 6);
     if (getAlertsEnabled() && banners.some(banner => banner.audio === 'beep')) onSound();
     return true;
   };

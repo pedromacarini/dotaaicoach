@@ -34,6 +34,10 @@ test('preload expõe ponte tipada sem exigir exports no sandbox', async () => {
   assert.deepEqual((await api.getMatchSessions()).channel, 'sessions:get');
   assert.deepEqual((await api.getItemTiming()).channel, 'items:get');
   assert.deepEqual((await api.getDraftScenarios()).channel, 'draft:get');
+  assert.deepEqual((await api.getTelemetry()).channel, 'telemetry:get');
+  assert.deepEqual((await api.setTelemetryEnabled(true)).args, [true]);
+  assert.deepEqual((await api.clearTelemetry()).channel, 'telemetry:clear');
+  assert.deepEqual((await api.exportTelemetry()).channel, 'telemetry:export');
   assert.deepEqual((await api.setDemo(true)).args, [true]);
   assert.deepEqual((await api.setPosition(3)).args, [3]);
   assert.deepEqual((await api.updateOverlayLayout({opacity:.8})).args, [{opacity:.8}]);

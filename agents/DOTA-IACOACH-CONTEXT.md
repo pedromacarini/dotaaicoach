@@ -19,7 +19,7 @@ Electron + React + TypeScript para overlay local do Dota 2. Repositório: `pedro
 4. ✅ Narrador de stack, pull, runas, Lotus e Roshan — regras Normal/Turbo usando voz pt-BR.
 5. ✅ Perfil/conta local — perfil JSON local com ID, nome e posição; sem login ou nuvem.
 6. ✅ Licença offline — payload Ed25519, validade opcional, importação local e modo gratuito sem servidor.
-7. Telemetria local opt-in.
+7. ✅ Telemetria local opt-in — desligada por padrão, eventos técnicos limitados ao computador, exportação e apagamento manuais.
 8. Decisão sobre servidor próprio.
 
 Ao concluir um item, atualizar esta lista com status e parar para o próximo pedido do usuário.

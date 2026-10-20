@@ -17,6 +17,7 @@ import { createItemTracker, type ItemTracker } from '../src/core/item-tracker';
 import { createDraftStore, type DraftStore } from './draft-store';
 import { createProfileStore, type ProfileStore } from './profile-store';
 import { createLicenseStore, type LicenseStore } from './license-store';
+import { createTelemetryStore, type TelemetryStore } from './telemetry-store';
 import type { Position } from '../src/shared/contracts';
 import {
   defaultSteamRoots, discoverDotaInstallation, inspectGsiInstallation, installGsiConfiguration,
@@ -38,6 +39,7 @@ let itemTracker: ItemTracker | null = null;
 let draftStore: DraftStore | null = null;
 let profileStore: ProfileStore | null = null;
 let licenseStore: LicenseStore | null = null;
+let telemetryStore: TelemetryStore | null = null;
 let snapshot: GameSnapshot = emptySnapshot();
 const librarySmokeOutput = process.argv
   .find(argument => argument.startsWith('--library-smoke-output='))
@@ -130,8 +132,13 @@ function refreshGsiInstallation(location?: DotaLocation | null): void {
   notifyGsiDiagnostics();
 }
 function updateSnapshot(value: GameSnapshot): void {
+  const previous = snapshot;
   status.demoEnabled = false;
   snapshot = value;
+  if (telemetryStore) {
+    if (previous.source !== 'gsi' && value.source === 'gsi') telemetryStore.record('match.started', { hero: value.heroInternalName, phase: value.gameState });
+    if (previous.matchId && value.matchId && previous.matchId !== value.matchId) telemetryStore.record('match.changed', { hero: value.heroInternalName });
+  }
   const sessionUpdate = sessionRecorder?.accept(value);
   if (sessionUpdate?.changed) notifyMatchSessions(sessionUpdate.recentChanged);
   if (notificationCenter?.acceptGameTime(value.gameTime, Date.now(), value.matchId)) notifyNotifications();
@@ -552,9 +559,8 @@ async function runNotificationSmoke(outputFile: string): Promise<void> {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
     const simulated = notificationState();
-    const banner = simulated.runtime.active[0];
-    const dismissed = banner
-      ? await dashboard.webContents.executeJavaScript(`window.dotaOverlay.dismissNotification(${JSON.stringify(banner.id)})`)
+    const dismissed = simulated.runtime.active.length
+      ? await dashboard.webContents.executeJavaScript(`(async()=>{let state=await window.dotaOverlay.getNotificationCenter();for(const banner of state.runtime.active) await window.dotaOverlay.dismissNotification(banner.id);return window.dotaOverlay.getNotificationCenter();})()`)
       : simulated;
     const restored = await dashboard.webContents.executeJavaScript('window.dotaOverlay.setSimulatedGameTime(null)');
     fs.writeFileSync(outputFile, JSON.stringify({ ...initial, simulated, renderedOverlayText, dismissed, restored }), 'utf8');
@@ -691,6 +697,17 @@ function installHandlers(): void {
   ipcMain.handle('profile:update', (event, patch: unknown) => { assertDashboard(event); if (!profileStore) throw new Error('Perfil local ainda não foi inicializado.'); return profileStore.update(patch); });
   ipcMain.handle('license:get', () => licenseStore?.get());
   ipcMain.handle('license:import', async event => { assertDashboard(event); if (!licenseStore || !dashboard) throw new Error('Licença local ainda não foi inicializada.'); const result = await dialog.showOpenDialog(dashboard, { title: 'Importar licença offline', properties: ['openFile'], filters: [{ name: 'Licença DotaIACoach', extensions: ['json'] }] }); if (result.canceled || !result.filePaths[0]) return licenseStore.get(); return licenseStore.importFile(result.filePaths[0]); });
+  ipcMain.handle('telemetry:get', event => { assertDashboard(event); return telemetryStore?.get() ?? { schemaVersion: 1, enabled: false, events: [] }; });
+  ipcMain.handle('telemetry:set-enabled', (event, enabled: unknown) => { assertDashboard(event); if (typeof enabled !== 'boolean' || !telemetryStore) throw new Error('Entrada inválida.'); const state = telemetryStore.setEnabled(enabled); if (enabled) telemetryStore.record('telemetry.enabled'); return telemetryStore.get(); });
+  ipcMain.handle('telemetry:clear', event => { assertDashboard(event); if (!telemetryStore) throw new Error('Telemetria local ainda não foi inicializada.'); return telemetryStore.clear(); });
+  ipcMain.handle('telemetry:export', async event => {
+    assertDashboard(event);
+    if (!telemetryStore || !dashboard) throw new Error('Telemetria local ainda não foi inicializada.');
+    const result = await dialog.showSaveDialog(dashboard, { title: 'Exportar telemetria local', defaultPath: 'dota-iacoach-telemetria.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
+    if (result.canceled || !result.filePath) return { canceled: true };
+    fs.writeFileSync(result.filePath, JSON.stringify(telemetryStore.get(), null, 2), { encoding: 'utf8', mode: 0o600 });
+    return { canceled: false, filePath: result.filePath };
+  });
   ipcMain.handle('gsi:diagnostics', () => gsiDiagnostics);
   ipcMain.handle('sessions:get', event => { assertDashboard(event); return matchSessions(); });
   ipcMain.handle('demo:set', (event, enabled: unknown) => {
@@ -927,6 +944,8 @@ else {
     preferencesStore = createPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'));
     profileStore = createProfileStore(path.join(app.getPath('userData'), 'profile.json'));
     licenseStore = createLicenseStore(path.join(app.getPath('userData'), 'license.json'));
+    telemetryStore = createTelemetryStore(path.join(app.getPath('userData'), 'telemetry.json'));
+    telemetryStore.record('app.started', { version: app.getVersion() });
     if (overlayDisabledAdviceSmokeOutput)
       preferencesStore.updateOverlayLayout({ modules: { skill: false, items: false } });
     const sessionHistory = createSessionHistoryStore(path.join(app.getPath('userData'), 'match-sessions.json'));

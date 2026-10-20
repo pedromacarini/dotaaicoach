@@ -51,7 +51,7 @@ export function createNotificationScheduler(): NotificationScheduler {
           if (banners.length >= MAX_OCCURRENCES_PER_ADVANCE) break;
         }
       }
-      return banners.sort((left, right) => left.scheduledAt - right.scheduledAt || left.ruleId.localeCompare(right.ruleId));
+      return banners.sort((left, right) => left.scheduledAt - right.scheduledAt);
     },
     reset() { previousTime = null; fired.clear(); },
   };

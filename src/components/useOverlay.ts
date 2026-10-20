@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AppPreferences, AppStatus, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LicenseStatus, LocalProfile, MatchSessionState, NotificationCenterState } from '../shared/contracts';
+import type { AppPreferences, AppStatus, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LicenseStatus, LocalProfile, MatchSessionState, NotificationCenterState, TelemetryState } from '../shared/contracts';
 
 export const empty: GameSnapshot = {
   source: 'idle', connected: false, receivedAt: null, gameTime: null, matchId: null, gameState: null,
@@ -36,6 +36,7 @@ export const defaultDraftScenarios: DraftScenarioState = {
     allies: [], enemies: [], bans: [], updatedAt: 0 },
   saved: [],
 };
+export const defaultTelemetry: TelemetryState = { schemaVersion: 1, enabled: false, events: [] };
 export const formatClock = (time: number | null): string => {
   if (time == null) return '--:--';
   const sign = time < 0 ? '-' : '';
@@ -53,6 +54,7 @@ export function useOverlay() {
   const [draftScenarios, setDraftScenarios] = useState<DraftScenarioState>(defaultDraftScenarios);
   const [localProfile, setLocalProfile] = useState<LocalProfile | null>(null);
   const [license, setLicense] = useState<LicenseStatus | null>(null);
+  const [telemetry, setTelemetry] = useState<TelemetryState>(defaultTelemetry);
   useEffect(() => {
     let mounted = true;
     const tracksSessions = new URLSearchParams(window.location.search).get('mode') !== 'overlay';
@@ -85,6 +87,8 @@ export function useOverlay() {
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar perfil local: '+String(err)})); });
     if (tracksSessions) void api.getLicenseStatus().then(v => { if (mounted) setLicense(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar licença local: '+String(err)})); });
+    if (tracksSessions) void api.getTelemetry().then(v => { if (mounted) setTelemetry(v); })
+      .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar telemetria local: '+String(err)})); });
     void api.getPreferences().then(v => { if (mounted) setPreferences(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar preferências: '+String(err)})); });
     void api.getGsiDiagnostics().then(v => { if (mounted) setGsiDiagnostics(v); })
@@ -99,5 +103,5 @@ export function useOverlay() {
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar drafts: '+String(err)})); });
     return () => { mounted = false; offSnapshot(); offStatus(); offPreferences(); offGsiDiagnostics(); offMatchSessions(); offNotifications(); offItemTiming(); offDraftScenarios(); };
   }, []);
-  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense };
+  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry };
 }

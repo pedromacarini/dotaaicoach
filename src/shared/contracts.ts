@@ -167,6 +167,18 @@ export interface AppPreferences {
 export interface LocalProfile { schemaVersion: 1; localId: string; displayName: string; preferredPosition: Position; createdAt: string; updatedAt: string; }
 export interface LicenseStatus { valid: boolean; plan: 'free' | 'premium'; subject: string | null; expiresAt: string | null; features: string[]; reason: string; }
 
+export interface TelemetryEvent {
+  name: string;
+  at: string;
+  data: Record<string, string | number | boolean | null>;
+}
+
+export interface TelemetryState {
+  schemaVersion: 1;
+  enabled: boolean;
+  events: TelemetryEvent[];
+}
+
 export type MatchSessionSource = 'real' | 'demo';
 export type MatchSessionEndReason = 'post-game' | 'new-match' | 'demo-complete';
 
@@ -317,6 +329,10 @@ export interface DotaOverlayAPI {
   updateLocalProfile(patch: { displayName?: string; preferredPosition?: Position }): Promise<LocalProfile>;
   getLicenseStatus(): Promise<LicenseStatus>;
   importLicense(): Promise<LicenseStatus>;
+  getTelemetry(): Promise<TelemetryState>;
+  setTelemetryEnabled(enabled: boolean): Promise<TelemetryState>;
+  clearTelemetry(): Promise<TelemetryState>;
+  exportTelemetry(): Promise<{ canceled: boolean; filePath?: string }>;
   getSnapshot(): Promise<GameSnapshot>;
   getStatus(): Promise<AppStatus>;
   getPreferences(): Promise<AppPreferences>;

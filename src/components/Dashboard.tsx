@@ -16,7 +16,7 @@ const positions: Array<{id:Position;name:string;detail:string}> = [
   {id:5,name:'Suporte 5',detail:'Hard support · visão e proteção'},
 ];
 export function Dashboard() {
-  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense } = useOverlay();
+  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry } = useOverlay();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -48,6 +48,24 @@ export function Dashboard() {
     setBusy(true); setMessage('');
     try { setLicense(await window.dotaOverlay.importLicense()); setMessage('Licença offline importada e validada.'); }
     catch (e) { setMessage(`Licença recusada: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
+  async function setTelemetryEnabled(enabled: boolean) {
+    setBusy(true); setMessage('');
+    try { setTelemetry(await window.dotaOverlay.setTelemetryEnabled(enabled)); setMessage(enabled ? 'Telemetria local ativada. Nada é enviado para a internet.' : 'Telemetria local desligada.'); }
+    catch (e) { setMessage(`Erro na telemetria local: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
+  async function clearTelemetry() {
+    setBusy(true); setMessage('');
+    try { setTelemetry(await window.dotaOverlay.clearTelemetry()); setMessage('Histórico local de telemetria apagado.'); }
+    catch (e) { setMessage(`Erro ao apagar telemetria: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
+  async function exportTelemetry() {
+    setBusy(true); setMessage('');
+    try { const result = await window.dotaOverlay.exportTelemetry(); if (!result.canceled) setMessage(`Telemetria exportada para: ${result.filePath}`); }
+    catch (e) { setMessage(`Erro ao exportar telemetria: ${String(e)}`); }
     finally { setBusy(false); }
   }
   async function installConfig() {
@@ -118,6 +136,11 @@ export function Dashboard() {
       </section>
       <OverlaySettings preferences={preferences} status={status} onMessage={setMessage}/>
       <section className="settings-card compact"><div><h3>O que já vale no overlay</h3><p>Herói detectado pelo GSI, próxima skill da amostra profissional e itens populares da fase atual da partida.</p></div><div className="settings-status"><span className={status.gsiListening?'ok':''}>● GSI {status.gsiListening?'pronto':'indisponível'}</span><span>● Cache OpenDota: 30 min</span></div></section>
+      <section className="settings-card">
+        <div className="card-top"><div><h3>Telemetria local</h3><p>Desligada por padrão. Se ativada, registra somente eventos técnicos neste computador; nada é enviado para servidor.</p></div><span className={`mini-label ${telemetry.enabled ? 'ok' : ''}`}>{telemetry.enabled ? 'ATIVA' : 'DESLIGADA'}</span></div>
+        <div className="control-row"><div><strong>Permitir coleta local</strong><small>{telemetry.events.length} eventos guardados · sem match ID, conta ou conteúdo de chat</small></div><button type="button" className={`toggle ${telemetry.enabled ? 'active' : ''}`} aria-label="Alternar telemetria local" aria-pressed={telemetry.enabled} disabled={busy} onClick={() => void setTelemetryEnabled(!telemetry.enabled)}><span/></button></div>
+        <div className="gsi-actions"><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void exportTelemetry()}>Exportar JSON</button><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void clearTelemetry()}>Apagar histórico</button></div>
+      </section>
       {message && <div className="notice">{message}</div>}
       <div className="footerline"><span>Layout validado e mantido dentro da área útil do monitor.</span><span>Salvo apenas neste computador</span></div>
     </> : <>
@@ -132,7 +155,7 @@ export function Dashboard() {
         <section className="card"><div className="card-top"><h3>Conectar Dota 2</h3><span className="mini-label">GAME STATE INTEGRATION</span></div><p>O diagnóstico localiza o jogo, instala a configuração com sua confirmação e mostra cada campo recebido.</p><div className="steps"><span>01</span><div>Abra o diagnóstico GSI.</div></div><div className="steps"><span>02</span><div>Instale a configuração automaticamente.</div></div><div className="steps"><span>03</span><div>Reinicie o Dota 2 e abra uma partida de teste.</div></div><button type="button" className="primary-button" disabled={!apiAvailable} onClick={() => { setPage('gsi'); setMessage(''); }}>Abrir diagnóstico GSI →</button></section>
       </div>
       {message && <div className="notice">{message}</div>}
-      <div className="footerline"><span>Dados locais · Nenhuma nuvem ou telemetria própria</span><span>Não é afiliado à Valve ou ao Dota2Brasil</span></div>
+      <div className="footerline"><span>Dados locais · Telemetria desligada por padrão</span><span>Não é afiliado à Valve ou ao Dota2Brasil</span></div>
     </>}
     </main>
   </div>;
