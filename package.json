@@ -20,7 +20,8 @@
     "predev": "npm run data:sync",
     "prebuild": "npm run data:sync",
     "test:library": "node --test tests/library.test.cjs",
-    "license:issue": "node scripts/issue-license.mjs"
+    "license:issue": "node scripts/issue-license.mjs",
+    "license:code": "node scripts/issue-activation-code.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

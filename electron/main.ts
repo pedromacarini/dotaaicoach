@@ -696,6 +696,7 @@ function installHandlers(): void {
   ipcMain.handle('profile:get', () => profileStore?.get());
   ipcMain.handle('profile:update', (event, patch: unknown) => { assertDashboard(event); if (!profileStore) throw new Error('Perfil local ainda não foi inicializado.'); return profileStore.update(patch); });
   ipcMain.handle('license:get', () => licenseStore?.get());
+  ipcMain.handle('license:activate-code', (event, code: unknown) => { assertDashboard(event); if (!licenseStore || typeof code !== 'string') throw new Error('Código de ativação inválido.'); return licenseStore.activateCode(code); });
   ipcMain.handle('license:import', async event => { assertDashboard(event); if (!licenseStore || !dashboard) throw new Error('Licença local ainda não foi inicializada.'); const result = await dialog.showOpenDialog(dashboard, { title: 'Importar licença offline', properties: ['openFile'], filters: [{ name: 'Licença DotaIACoach', extensions: ['json'] }] }); if (result.canceled || !result.filePaths[0]) return licenseStore.get(); return licenseStore.importFile(result.filePaths[0]); });
   ipcMain.handle('telemetry:get', event => { assertDashboard(event); return telemetryStore?.get() ?? { schemaVersion: 1, enabled: false, events: [] }; });
   ipcMain.handle('telemetry:set-enabled', (event, enabled: unknown) => { assertDashboard(event); if (typeof enabled !== 'boolean' || !telemetryStore) throw new Error('Entrada inválida.'); const state = telemetryStore.setEnabled(enabled); if (enabled) telemetryStore.record('telemetry.enabled'); return telemetryStore.get(); });

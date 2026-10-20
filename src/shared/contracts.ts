@@ -329,6 +329,7 @@ export interface DotaOverlayAPI {
   updateLocalProfile(patch: { displayName?: string; preferredPosition?: Position }): Promise<LocalProfile>;
   getLicenseStatus(): Promise<LicenseStatus>;
   importLicense(): Promise<LicenseStatus>;
+  activateLicenseCode(code: string): Promise<LicenseStatus>;
   getTelemetry(): Promise<TelemetryState>;
   setTelemetryEnabled(enabled: boolean): Promise<TelemetryState>;
   clearTelemetry(): Promise<TelemetryState>;

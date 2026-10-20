@@ -20,6 +20,7 @@ export function Dashboard() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState('');
+  const [activationCode, setActivationCode] = useState('');
   const apiAvailable = Boolean(window.dotaOverlay);
   useEffect(() => { if (localProfile && profileName === '') setProfileName(localProfile.displayName); }, [localProfile, profileName]);
   const [page,setPage] = useState<'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'notifications'|'settings'>('overview');
@@ -50,6 +51,16 @@ export function Dashboard() {
     catch (e) { setMessage(`Licença recusada: ${String(e)}`); }
     finally { setBusy(false); }
   }
+  async function activateLicenseCode() {
+    setBusy(true); setMessage('');
+    try { setLicense(await window.dotaOverlay.activateLicenseCode(activationCode)); setActivationCode(''); setMessage('Código aceito. Licença de teste ativada neste computador.'); }
+    catch (e) { setMessage(`Código recusado: ${String(e)}`); }
+    finally { setBusy(false); }
+  }
+  const activationCard = !license?.valid ? <section className="settings-card license-activation">
+    <div className="card-top"><div><h3>Ativar licença de teste</h3><p>Cole o código recebido para liberar os recursos premium neste computador.</p></div><span className="mini-label">20 CARACTERES</span></div>
+    <div className="notification-form"><label className="wide"><span>Código de ativação</span><input maxLength={20} value={activationCode} placeholder="AXE-BLINK-LOTUS-7F2C" onChange={event => setActivationCode(event.target.value.toUpperCase())}/></label><button type="button" className="primary-button" disabled={busy || activationCode.length < 20} onClick={() => void activateLicenseCode()}>Ativar código</button></div>
+  </section> : null;
   async function setTelemetryEnabled(enabled: boolean) {
     setBusy(true); setMessage('');
     try { setTelemetry(await window.dotaOverlay.setTelemetryEnabled(enabled)); setMessage(enabled ? 'Telemetria local ativada. Nada é enviado para a internet.' : 'Telemetria local desligada.'); }
@@ -117,7 +128,8 @@ export function Dashboard() {
         <div className="card-top"><div><h3>Perfil local</h3><p>Identidade somente deste computador. Não exige login nem envia dados.</p></div><span className="mini-label">ID {localProfile?.localId.slice(0, 8) ?? '—'}</span></div>
         <div className="notification-form"><label className="wide"><span>Nome exibido</span><input maxLength={40} value={profileName} onChange={event => setProfileName(event.target.value)}/></label><button type="button" className="primary-button" disabled={busy || !profileName.trim()} onClick={() => void saveProfile()}>Salvar perfil</button></div>
       </section>
-      <section className="settings-card compact"><div><h3>Licença offline</h3><p>{license?.reason ?? 'Verificando licença local.'}</p><small>{license?.valid ? `Plano premium · ${license.subject ?? 'sem titular'}` : 'Modo gratuito'}</small></div><button type="button" className="secondary-button" disabled={busy} onClick={() => void importLicense()}>Importar licença</button></section>
+      <section className="settings-card compact"><div><h3>Licença offline</h3><p>{license?.reason ?? 'Verificando licença local.'}</p><small>{license?.valid ? `Plano premium · ${license.subject ?? 'sem titular'}` : 'Modo gratuito'}</small></div><button type="button" className="secondary-button" disabled={busy} onClick={() => void importLicense()}>Importar JSON</button></section>
+      {activationCard}
       <section className="settings-card">
         <div className="card-top"><div><h3>Pacotes recebidos</h3><p>O modo demonstração não conta aqui. Estes indicadores representam apenas dados enviados pelo Dota.</p></div><span className="mini-label">{gsiDiagnostics.packetsReceived} ACEITOS · {gsiDiagnostics.rejectedRequests} REJEITADOS</span></div>
         <div className="diagnostic-fields">{diagnosticFields.map(([label, fieldValue]) => {
@@ -150,6 +162,7 @@ export function Dashboard() {
       <section className="hero-card"><div className="hero-top"><div><small>PARTIDA ATUAL</small><h2>{snapshot.heroName || 'Nenhum herói detectado'}</h2><p>{snapshot.gameState === 'DOTA_GAMERULES_STATE_GAME_IN_PROGRESS' ? 'Partida em andamento' : snapshot.source === 'idle' ? 'Inicie o Dota 2 ou ative a demonstração.' : 'Visualização de informações disponíveis'}</p></div><div className="match-clock">{formatClock(snapshot.gameTime)}<small>TEMPO DE JOGO</small></div></div>
         <div className="hero-stats"><div><small>NÍVEL</small><strong>{value(snapshot.heroLevel)}</strong></div><div><small>ÚLTIMOS HITS</small><strong>{value(snapshot.lastHits)}</strong></div><div><small>NEGAÇÕES</small><strong>{value(snapshot.denies)}</strong></div><div><small>PATRIMÔNIO</small><strong>{value(snapshot.netWorth)}</strong></div><div><small>GPM</small><strong>{value(snapshot.gpm)}</strong></div></div>
       </section>
+      {activationCard}
       <div className="sections-grid">
         <section className="card"><div className="card-top"><h3>Overlay em tempo real</h3><span className="mini-label">JANELA TRANSPARENTE</span></div><p>Mostra apenas dados recebidos localmente. Para testar sem jogo, ligue o modo demonstração.</p><div className="control-row"><div><strong>Exibir overlay</strong><small>Atalho global: Ctrl + Shift + F9</small></div><button type="button" className={`toggle ${status.overlayVisible ? 'active' : ''}`} aria-label="Alternar overlay" aria-pressed={status.overlayVisible} disabled={!apiAvailable} onClick={() => void window.dotaOverlay.setOverlayVisible(!status.overlayVisible)}><span/></button></div><div className="control-row"><div><strong>Modo demonstração</strong><small>Dados fictícios claramente identificados</small></div><button type="button" className={`toggle ${status.demoEnabled ? 'active' : ''}`} aria-label="Alternar demonstração" aria-pressed={status.demoEnabled} disabled={!apiAvailable} onClick={() => void window.dotaOverlay.setDemo(!status.demoEnabled)}><span/></button></div></section>
         <section className="card"><div className="card-top"><h3>Conectar Dota 2</h3><span className="mini-label">GAME STATE INTEGRATION</span></div><p>O diagnóstico localiza o jogo, instala a configuração com sua confirmação e mostra cada campo recebido.</p><div className="steps"><span>01</span><div>Abra o diagnóstico GSI.</div></div><div className="steps"><span>02</span><div>Instale a configuração automaticamente.</div></div><div className="steps"><span>03</span><div>Reinicie o Dota 2 e abra uma partida de teste.</div></div><button type="button" className="primary-button" disabled={!apiAvailable} onClick={() => { setPage('gsi'); setMessage(''); }}>Abrir diagnóstico GSI →</button></section>

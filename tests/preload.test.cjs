@@ -34,6 +34,7 @@ test('preload expõe ponte tipada sem exigir exports no sandbox', async () => {
   assert.deepEqual((await api.getMatchSessions()).channel, 'sessions:get');
   assert.deepEqual((await api.getItemTiming()).channel, 'items:get');
   assert.deepEqual((await api.getDraftScenarios()).channel, 'draft:get');
+  assert.deepEqual((await api.activateLicenseCode('AXE-BLINK-LOTUS-7F2C')).args, ['AXE-BLINK-LOTUS-7F2C']);
   assert.deepEqual((await api.getTelemetry()).channel, 'telemetry:get');
   assert.deepEqual((await api.setTelemetryEnabled(true)).args, [true]);
   assert.deepEqual((await api.clearTelemetry()).channel, 'telemetry:clear');

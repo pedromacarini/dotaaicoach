@@ -30,6 +30,7 @@ const overlayBridge: DotaOverlayAPI = {
   updateLocalProfile: patch => ipcRenderer.invoke('profile:update', patch),
   getLicenseStatus: () => ipcRenderer.invoke('license:get') as Promise<LicenseStatus>,
   importLicense: () => ipcRenderer.invoke('license:import') as Promise<LicenseStatus>,
+  activateLicenseCode: code => ipcRenderer.invoke('license:activate-code', code) as Promise<LicenseStatus>,
   getTelemetry: () => ipcRenderer.invoke('telemetry:get') as Promise<TelemetryState>,
   setTelemetryEnabled: enabled => ipcRenderer.invoke('telemetry:set-enabled', enabled) as Promise<TelemetryState>,
   clearTelemetry: () => ipcRenderer.invoke('telemetry:clear') as Promise<TelemetryState>,
