@@ -23,15 +23,15 @@ export function verifyLicense(value: unknown, now = new Date()): LicenseStatus {
   return { valid: true, plan: 'premium', subject: payload.subject, expiresAt: payload.expiresAt, features: [...payload.features], reason: 'Licença offline válida.' };
 }
 export interface LicenseStore { get(): LicenseStatus; importFile(filePath: string): LicenseStatus; activateCode(code: string): LicenseStatus; }
-export function createLicenseStore(filePath: string): LicenseStore {
+export function createLicenseStore(filePath: string, now: () => Date = () => new Date()): LicenseStore {
   let status = free('Nenhuma licença instalada.');
   const load = (): void => {
     try {
       const raw = JSON.parse(fs.readFileSync(filePath, 'utf8')) as Record<string, unknown>;
       if (raw.type === 'activation' && typeof raw.codeHash === 'string') {
         const activation = ACTIVATION_CODES[raw.codeHash];
-        const expires = typeof raw.expiresAt === 'string' ? new Date(raw.expiresAt) : null;
-        status = activation && expires && expires > new Date()
+        const expires = activation ? new Date(activation.expiresAt) : null;
+        status = activation && expires && expires > now()
           ? { valid: true, plan: 'premium', subject: activation.subject, expiresAt: activation.expiresAt,
             features: ['voice', 'advanced-guides', 'premium-advisor'], reason: 'Código de ativação válido.' }
           : free('Código de ativação expirado.');
@@ -54,7 +54,7 @@ export function createLicenseStore(filePath: string): LicenseStore {
       const activation = ACTIVATION_CODES[hash];
       if (!activation) throw new Error('Código de ativação inválido.');
       const expires = new Date(activation.expiresAt);
-      if (expires <= new Date()) throw new Error('Código de ativação expirado.');
+      if (expires <= now()) throw new Error('Código de ativação expirado.');
       status = { valid: true, plan: 'premium', subject: activation.subject, expiresAt: activation.expiresAt,
         features: ['voice', 'advanced-guides', 'premium-advisor'], reason: 'Código de ativação válido.' };
       fs.mkdirSync(require('node:path').dirname(filePath), { recursive: true });
