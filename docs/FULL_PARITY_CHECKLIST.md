@@ -70,7 +70,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 
 | Status | Recurso | Próxima evidência necessária | Ordem |
 |---|---|---|---:|
-| 🔵 | Quantidade própria de observer/sentry/dispenser observada | Fixture GSI real de cargas | 5 |
+| 🟡 | Quantidade própria de observer/sentry/dispenser observada | Cartão de inventário entregue; falta validar cargas no GSI real | 5 |
 | 🔵 | Contadores próprios comprados/colocados/destruídos | Confirmar disponibilidade no payload real | 5 |
 | 🔵 | Ritmo de ward com inferências rotuladas | Não inferir posição nem visão | 5 |
 | 🔵 | Condições: silence, stun, disarm, break, hex, mute e debuff | Fixtures reais; ausência não é falso | 5 |
@@ -85,7 +85,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 | Status | Recurso | Próxima evidência necessária | Ordem |
 |---|---|---|---:|
 | 🔵 | Banco autoral de camps/pontos por patch e lado | Fonte aberta/licenciada | 6 |
-| 🔵 | Rotas de farm explicadas e editáveis | Simulador + pathfinder | 6 |
+| 🟡 | Rotas de farm explicadas e editáveis | Simulador offline autoral entregue; falta calibração de mapa | 6 |
 | 🔵 | Scout/evolução/proximidade dos camps | Delimitar apenas estado observável | 6 |
 | 🔵 | Coleta e comparação de ouro dos camps | Catálogo/versionamento próprio | 6 |
 | 🔵 | Classificação e atribuição de lane | Definir entradas legítimas e confiança | 6 |
