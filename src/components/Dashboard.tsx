@@ -24,6 +24,7 @@ export function Dashboard() {
   const [profileName, setProfileName] = useState('');
   const [activationCode, setActivationCode] = useState('');
   const [showGsiHelp, setShowGsiHelp] = useState(false);
+  const [showSettingsHelp, setShowSettingsHelp] = useState(false);
   const apiAvailable = Boolean(window.dotaOverlay);
   useEffect(() => { if (localProfile && profileName === '') setProfileName(localProfile.displayName); }, [localProfile, profileName]);
   const [page,setPage] = useState<'onboarding'|'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'routes'|'notifications'|'settings'>(() => {
@@ -170,7 +171,8 @@ export function Dashboard() {
       {message && <div className="notice">{message}</div>}
       <div className="footerline"><span>Próximo teste: reinicie o Dota e entre em lobby, partida contra bots ou replay.</span><span>Endpoint local 127.0.0.1</span></div>
     </> : page === 'settings' ? <>
-      <div className="page-top"><div><div className="eyebrow">PREFERÊNCIAS DO OVERLAY</div><h1>Configurações</h1><p>Escolhas salvas no computador e compartilhadas entre o painel e o overlay.</p></div><div className="version">PERFIL LOCAL</div></div>
+      <div className="page-top"><div><div className="eyebrow">PREFERÊNCIAS DO OVERLAY</div><h1>Configurações</h1><p>Escolhas salvas no computador e compartilhadas entre o painel e o overlay.</p></div><div className="page-help-actions"><div className="version">PERFIL LOCAL</div><button type="button" className="help-button" aria-label="Ajuda sobre configurações" onClick={() => setShowSettingsHelp(value => !value)}>?</button></div></div>
+      {showSettingsHelp && <section className="settings-card contextual-help"><div className="card-top"><div><h3>Ajuda das configurações</h3><p>Estas opções valem somente neste computador e são compartilhadas com o overlay.</p></div><button type="button" className="secondary-button" onClick={() => setShowSettingsHelp(false)}>Fechar</button></div><p><strong>Posição:</strong> escolhe a amostra de builds e metas. <strong>Layout:</strong> controla tamanho, opacidade, posição e módulos. <strong>GSI:</strong> conecta o Dota ao servidor local. <strong>Diagnóstico:</strong> coleta dados técnicos locais para investigar testes.</p></section>}
       <section className="settings-card">
         <div className="card-top"><div><h3>Sua posição</h3><p>Define qual amostra de builds e skills será usada durante a partida.</p></div><span className="mini-label">POSIÇÃO {preferences.position}</span></div>
         <div className="position-grid">{positions.map(position => <button type="button" key={position.id} disabled={busy} className={preferences.position===position.id?'selected':''} onClick={() => void setPosition(position.id)}><span>{position.id}</span><strong>{position.name}</strong><small>{position.detail}</small></button>)}</div>

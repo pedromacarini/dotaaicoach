@@ -53,6 +53,7 @@ export function StatsPage({ snapshot, preferences, sessions }: {
   snapshot: GameSnapshot; preferences: AppPreferences; sessions: MatchSessionState;
 }) {
   const [selectedRecentId, setSelectedRecentId] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const demo = useMemo(() => createDemoSession(preferences.position), [preferences.position]);
   const current = chooseDisplayedSession(snapshot.source, sessions.active, selectedRecentId, sessions.recent, demo);
   const latest = current?.samples.at(-1) ?? null;
@@ -67,7 +68,8 @@ export function StatsPage({ snapshot, preferences, sessions }: {
   const gpmAssessment = evaluateEconomy(benchmarkPosition, economyTime, isPastSession ? current?.summary.gpm ?? null : snapshot.gpm, 'gpm');
   const grade = assessment ? gradeCopy[assessment.classification] : null;
   return <>
-    <div className="page-top"><div><div className="eyebrow">DESEMPENHO LOCAL</div><h1>Estatísticas</h1><p>Compare sua evolução com uma referência aberta e acompanhe sessões salvas no computador.</p></div><div className="version">META EXPERIMENTAL V1</div></div>
+    <div className="page-top"><div><div className="eyebrow">DESEMPENHO LOCAL</div><h1>Estatísticas</h1><p>Compare sua evolução com uma referência aberta e acompanhe sessões salvas no computador.</p></div><div className="page-help-actions"><div className="version">META EXPERIMENTAL V1</div><button type="button" className="help-button" aria-label="Ajuda sobre estatísticas" onClick={() => setShowHelp(value => !value)}>?</button></div></div>
+    {showHelp && <section className="settings-card contextual-help"><div className="card-top"><div><h3>Como funcionam as estatísticas?</h3><p>O app compara seus dados recebidos pelo GSI com metas experimentais por posição e tempo.</p></div><button type="button" className="secondary-button" onClick={() => setShowHelp(false)}>Fechar</button></div><p><strong>Last hits:</strong> mostra seu LH, a média de referência e a diferença. <strong>Patrimônio e GPM:</strong> só aparecem quando o Dota envia esses campos. <strong>Histórico:</strong> partidas reais ficam neste computador; a demonstração é claramente marcada e não representa uma partida real.</p></section>}
     <div className="stats-disclaimer">Este benchmark é um ponto de partida autoral, não uma verdade competitiva. Os valores estão documentados e serão calibrados com testes reais.</div>
     <section className="stats-current">
       <div className={`farm-grade ${assessment?.classification ?? 'unavailable'}`}><small>AVALIAÇÃO ATUAL · {positionNames[benchmarkPosition]}</small><strong>{grade?.title ?? 'Sem partida ativa'}</strong><p>{grade?.detail ?? 'Ative a demonstração ou conecte uma partida para comparar.'}</p></div>

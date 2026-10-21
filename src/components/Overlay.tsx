@@ -1,6 +1,6 @@
 import { formatClock, useOverlay } from './useOverlay';
 import { useMatchAdvice } from './useMatchAdvice';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { evaluateEconomy, evaluateFarm } from '../core/farm-benchmark';
 import { voiceAssetUrl } from '../core/voice-assets';
@@ -22,6 +22,17 @@ export function Overlay() {
   const netWorth = evaluateEconomy(preferences.position, snapshot.gameTime, snapshot.netWorth, 'netWorth');
   const gpm = evaluateEconomy(preferences.position, snapshot.gameTime, snapshot.gpm, 'gpm');
   const spokenAlerts = useRef(new Set<string>());
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('dota-iacoach-overlay-collapsed') || '{}') as Record<string, boolean>; }
+    catch { return {}; }
+  });
+  function toggleCollapsed(key: string): void {
+    setCollapsed(current => {
+      const next = { ...current, [key]: !current[key] };
+      try { localStorage.setItem('dota-iacoach-overlay-collapsed', JSON.stringify(next)); } catch { /* layout continua em memória */ }
+      return next;
+    });
+  }
   useEffect(() => {
     for (const banner of notificationCenter.runtime.active) {
       if (spokenAlerts.current.has(banner.id) || banner.audio !== 'voice') continue;
@@ -88,15 +99,16 @@ export function Overlay() {
     <div className="overlay-panel">
       {status.overlayEditing && <div className="overlay-editbar"><span>{preferences.overlayLayout.locked ? 'POSIÇÃO BLOQUEADA' : 'ARRASTE AQUI · REDIMENSIONE PELA ALÇA INFERIOR DIREITA'}</span><button type="button" onClick={() => void window.dotaOverlay.setOverlayEditing(false).catch(() => undefined)}>Concluir edição</button></div>}
       <div className="overlay-header"><strong>◈ DOTA IACOACH</strong><span className={`live-marker ${snapshot.source}`}>{snapshot.source === 'gsi' ? (snapshot.connected ? 'AO VIVO' : 'SEM SINAL') : snapshot.source === 'demo' ? 'DEMONSTRAÇÃO' : 'AGUARDANDO'}</span></div>
-      {modules.stats && <><div className="overlay-line"><span>{snapshot.heroName ?? 'Aguardando Dota 2'}</span><b>{formatClock(snapshot.gameTime)}</b></div>
+      {modules.stats && <section className="overlay-module overlay-stats-module"><div className="overlay-module-title"><span>ESTATÍSTICAS</span><button type="button" aria-label="Recolher estatísticas" onClick={() => toggleCollapsed('stats')}>{collapsed.stats ? '＋' : '−'}</button></div>{!collapsed.stats && <><div className="overlay-line"><span>{snapshot.heroName ?? 'Aguardando Dota 2'}</span><b>{formatClock(snapshot.gameTime)}</b></div>
       <div className="overlay-stats">
         <div className={farm ? `farm-${farm.classification}` : ''}><small>LAST HITS</small><b>{value(snapshot.lastHits)}{farm ? <em> / média {farm.targetLastHits}</em> : null}</b></div>
         <div><small>DENIES</small><b>{value(snapshot.denies)}</b></div>
         <div className={netWorth ? `farm-${netWorth.classification}` : ''}><small>PATRIMÔNIO TOTAL</small><b>{value(snapshot.netWorth)}{netWorth ? <em> / média {netWorth.target.toLocaleString('pt-BR')}</em> : <em> / GSI sem dado</em>}</b></div>
         <div className={gpm ? `farm-${gpm.classification}` : ''}><small>GPM</small><b>{value(snapshot.gpm)}{gpm ? <em> / média {gpm.target}</em> : null}</b></div>
-      </div></>}
+      </div></>}</section>}
       {hasAdviceModule && <div className="overlay-advice">
-        <div className="advice-title"><span>GUIA AO VIVO · {positionName[preferences.position]}</span>{advice && <small>{advice.sampleSize} partidas</small>}</div>
+        <div className="advice-title"><span>GUIA AO VIVO · {positionName[preferences.position]}</span><span>{advice && <small>{advice.sampleSize} partidas</small>}<button type="button" aria-label="Recolher guia" onClick={() => toggleCollapsed('advice')}>{collapsed.advice ? '＋' : '−'}</button></span></div>
+        {!collapsed.advice && <>
         {!snapshot.heroName && <div className="advice-state">As recomendações aparecem quando o herói for detectado.</div>}
         {snapshot.heroName && loading && !advice && <div className="advice-state">Buscando build e skills…</div>}
         {snapshot.heroName && error && !advice && <div className="advice-state error">Sem recomendação: {error}</div>}
@@ -114,14 +126,14 @@ export function Overlay() {
             <div className="advice-items">{advice.items.map(item => <div key={item.id} title={item.name}><img src={item.imageUrl} alt={item.name}/><span>{item.name}</span></div>)}</div>
           </div>}
         </div>}
+        </>}
       </div>}
       {draftLive.source === 'gsi' && draftLive.prompt?.visible && <div className="overlay-draft-prompt" role="status"><strong>DRAFT AO VIVO</strong><span>{draftLive.enemies.length ? `${draftLive.enemies.length} inimigo(s) confirmado(s)` : 'Aguardando escolhas confirmadas'}</span><button type="button" onClick={() => void window.dotaOverlay.dismissDraftPrompt('follow')}>Acompanhar</button></div>}
-      {modules.items && <div className="overlay-item-timing">
+      {modules.items && <div className="overlay-item-timing"><div className="overlay-module-title"><span>TIMING DE ITENS</span><button type="button" aria-label="Recolher timing de itens" onClick={() => toggleCollapsed('items')}>{collapsed.items ? '＋' : '−'}</button></div>{!collapsed.items && <>
         <div><small>PRIMEIRA OBSERVAÇÃO · NÃO É COMPRA</small><strong>{itemTiming.inventory.observation === 'unknown' ? 'Inventário ainda desconhecido' : `${itemTiming.observations.length} tipo(s) observado(s)`}</strong></div>
         {itemTiming.comparisons.length > 0 && (() => { const last = itemTiming.comparisons[itemTiming.comparisons.length - 1]; const delta = last.deltaSeconds; const deltaLabel = delta === null ? '' : ` ${delta >= 0 ? '+' : '−'}${formatClock(Math.abs(delta))}`; return <span className={last.verdict}>{last.observation.itemInternalName.replace(/^item_/, '').replaceAll('_', ' ')} · {last.verdict === 'no-sample' ? 'sem amostra' : last.verdict === 'unknown-time' ? 'tempo desconhecido' : last.verdict === 'early' ? 'adiantado' : last.verdict === 'late' ? 'atrasado' : 'no esperado'}{deltaLabel}</span>; })()}
-      </div>}
-      {modules.alerts && notificationCenter.runtime.active.length > 0 && <div className="overlay-alerts" aria-live="assertive">{notificationCenter.runtime.active.map(banner => <div className="overlay-alert" key={banner.id}><div><small>{banner.tags.map(tag => `#${tag}`).join(' ') || 'LEMBRETE'}</small><strong>{banner.title}</strong><span>{formatClock(banner.scheduledAt)}</span></div>{status.overlayEditing && <button type="button" aria-label={`Dispensar ${banner.title}`} onClick={() => void window.dotaOverlay.dismissNotification(banner.id)}>×</button>}</div>)}</div>}
-      {status.overlayEditing && modules.alerts && notificationCenter.runtime.active.length === 0 && <div className="overlay-alert-preview">MÓDULO DE ALERTAS · NENHUM ALERTA ATIVO</div>}
+      </>}</div>}
+      {modules.alerts && <div className="overlay-alert-module"><button type="button" className="overlay-module-title overlay-alert-toggle" onClick={() => toggleCollapsed('alerts')}><span>🔔 AVISOS · PULL · STACK · RUNAS</span><span>{collapsed.alerts ? '＋' : '−'}</span></button>{!collapsed.alerts && notificationCenter.runtime.active.length > 0 && <div className="overlay-alerts" aria-live="assertive">{notificationCenter.runtime.active.map(banner => <div className="overlay-alert" key={banner.id}><div><small>{banner.tags.map(tag => `#${tag}`).join(' ') || 'LEMBRETE'}</small><strong>{banner.title}</strong><span>{formatClock(banner.scheduledAt)}</span></div>{status.overlayEditing && <button type="button" aria-label={`Dispensar ${banner.title}`} onClick={() => void window.dotaOverlay.dismissNotification(banner.id)}>×</button>}</div>)}</div>}{status.overlayEditing && !collapsed.alerts && notificationCenter.runtime.active.length === 0 && <div className="overlay-alert-preview">MÓDULO DE ALERTAS · NENHUM ALERTA ATIVO</div>}</div>}
       {status.overlayEditing && !preferences.overlayLayout.locked && <button type="button" tabIndex={-1} className="overlay-resize-handle" aria-label="Alça de redimensionamento por ponteiro; alternativa numérica disponível nas configurações" onPointerDown={beginResize}>↘</button>}
     </div>
   </div>;

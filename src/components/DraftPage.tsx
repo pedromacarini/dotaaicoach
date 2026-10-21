@@ -34,6 +34,7 @@ export function DraftPage({ state, draftLive, onMessage, onOpenHero }: {
   const [catalogError, setCatalogError] = useState('');
   const [catalogWarning, setCatalogWarning] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const localRevision = useRef(0);
   const pendingSaveRevision = useRef<number | null>(null);
   const requestRevision = useRef(0);
@@ -163,7 +164,8 @@ export function DraftPage({ state, draftLive, onMessage, onOpenHero }: {
   const live = draftLive;
   const liveName = (heroId: number) => heroes.find(hero => hero.id === heroId)?.name ?? `Herói ${heroId}`;
   return <>
-    <div className="page-top"><div><div className="eyebrow">PLANEJAMENTO MANUAL · FORA DA AÇÃO</div><h1>Draft Advisor</h1><p>Counters com amostra pública e cobertura de funções explicitamente heurística.</p></div><div className="version">{modeLabel[scenario.mode].toUpperCase()} · POS. {scenario.position}</div></div>
+    <div className="page-top"><div><div className="eyebrow">PLANEJAMENTO MANUAL · FORA DA AÇÃO</div><h1>Draft Advisor</h1><p>Counters com amostra pública e cobertura de funções explicitamente heurística.</p></div><div className="page-help-actions"><div className="version">{modeLabel[scenario.mode].toUpperCase()} · POS. {scenario.position}</div><button type="button" className="help-button" aria-label="Ajuda sobre draft" onClick={() => setShowHelp(value => !value)}>?</button></div></div>
+    {showHelp && <section className="settings-card contextual-help"><div className="card-top"><div><h3>O que é o Draft Advisor?</h3><p>É uma ferramenta para organizar picks, bans e confrontos antes ou durante a seleção de heróis.</p></div><button type="button" className="secondary-button" onClick={() => setShowHelp(false)}>Fechar</button></div><p>Adicione seus aliados, inimigos e bans nos grupos correspondentes. O app consulta confrontos públicos quando disponível e combina isso com funções do herói. A recomendação não escolhe por você: mostra amostra, confiança, origem e quais partes são apenas heurísticas. No draft ao vivo, somente escolhas confirmadas pelo GSI entram automaticamente.</p></section>}
     <div className="draft-live" role="status" aria-live="polite">{catalogError || catalogWarning || (loading ? 'Consultando confrontos na OpenDota.' : `${recommendations.length} recomendações disponíveis.`)}</div>
     {live?.prompt?.visible && <section className="settings-card draft-context-prompt" role="dialog" aria-label="Ajuda contextual do draft">
       <div><div className="eyebrow">DRAFT AO VIVO · GSI</div><h3>{live.prompt.message}</h3><p>{live.enemies.length ? `${live.enemies.length} inimigo(s) confirmado(s). Você pode acompanhar ou preencher o editor manualmente.` : 'Nenhum inimigo confirmado ainda; o editor manual continua disponível.'}</p></div>

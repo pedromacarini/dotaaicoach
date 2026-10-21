@@ -24,6 +24,7 @@ export function NotificationPage({ state, position, onMessage }: {
   const [tagFilter, setTagFilter] = useState('all');
   const [presetId, setPresetId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const tags = useMemo(() => [...new Set(state.config.rules.flatMap(rule => rule.tags))].sort(), [state.config.rules]);
   const visibleRules = tagFilter === 'all' ? state.config.rules : state.config.rules.filter(rule => rule.tags.includes(tagFilter));
 
@@ -71,7 +72,8 @@ export function NotificationPage({ state, position, onMessage }: {
   }
 
   return <>
-    <div className="page-top"><div><div className="eyebrow">LEMBRETES PELO RELÓGIO DA PARTIDA</div><h1>Cronograma</h1><p>Regras locais, editáveis e sem inferência de objetivos ocultos.</p></div><div className="version">SCHEMA 1 · {state.config.mode.toUpperCase()}</div></div>
+    <div className="page-top"><div><div className="eyebrow">LEMBRETES PELO RELÓGIO DA PARTIDA</div><h1>Cronograma</h1><p>Regras locais, editáveis e sem inferência de objetivos ocultos.</p></div><div className="page-help-actions"><div className="version">SCHEMA 1 · {state.config.mode.toUpperCase()}</div><button type="button" className="help-button" aria-label="Ajuda sobre cronograma" onClick={() => setShowHelp(value => !value)}>?</button></div></div>
+    {showHelp && <section className="settings-card contextual-help"><div className="card-top"><div><h3>Como funciona o Cronograma?</h3><p>Ele usa o relógio calibrado do GSI e dispara lembretes locais no horário configurado.</p></div><button type="button" className="secondary-button" onClick={() => setShowHelp(false)}>Fechar</button></div><p>Use presets para começar e ajuste pull, stack, runas, Lotus, Roshan e Tormentor conforme sua posição. <strong>Silencioso</strong> não toca nada, <strong>som</strong> usa o beep do sistema e <strong>voz</strong> tenta o áudio em português. O relógio simulado serve para testar sem abrir o Dota.</p></section>}
     <div className="notification-summary">
       <section className="settings-card notification-clock"><div className="card-top"><div><h3>Relógio de teste</h3><p>Simule qualquer instante sem abrir o Dota. O relógio real volta ao encerrar.</p></div><span className={`mini-label ${state.runtime.simulated ? 'simulation' : ''}`}>{state.runtime.simulated ? 'SIMULAÇÃO' : 'RELÓGIO GSI'}</span></div>
         <div className="notification-test-row"><label><span>MM:SS</span><input aria-label="Relógio simulado" value={clockDraft} onChange={event => setClockDraft(event.target.value)}/></label><button type="button" className="primary-button" disabled={busy} onClick={() => void simulate()}>Simular instante</button><button type="button" className="secondary-button" disabled={busy || !state.runtime.simulated} onClick={() => void action(() => window.dotaOverlay.setSimulatedGameTime(null), 'Simulação encerrada; o GSI voltou a comandar o relógio.')}>Encerrar</button></div>
