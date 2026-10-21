@@ -1,6 +1,6 @@
 {
   "name": "dota-iacoach",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "Coach de overlay comunitário, local e atualizável para Dota 2",
   "main": "dist-electron/electron/main.js",

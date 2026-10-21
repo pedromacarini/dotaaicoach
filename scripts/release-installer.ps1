@@ -7,6 +7,15 @@ $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 Set-Location $project
 
+# Uma tentativa interrompida do electron-builder pode deixar este diretório
+# temporário. Ele é artefato descartável da build, não dado do usuário.
+$staleUnpacked = Join-Path $project 'release\win-unpacked.tmp'
+if (Test-Path -LiteralPath $staleUnpacked) {
+  Write-Host 'Limpando diretório temporário de uma build anterior...' -ForegroundColor DarkYellow
+  try { Remove-Item -LiteralPath $staleUnpacked -Recurse -Force -ErrorAction Stop }
+  catch { throw "Não foi possível limpar release\win-unpacked.tmp. Feche o DotaIACoach, o Explorer nessa pasta e tente novamente. Detalhe: $($_.Exception.Message)" }
+}
+
 git diff --quiet; $trackedDirty = $LASTEXITCODE -ne 0
 git diff --cached --quiet; $stagedDirty = $LASTEXITCODE -ne 0
 if ($trackedDirty -or $stagedDirty) {
