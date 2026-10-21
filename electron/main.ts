@@ -18,6 +18,7 @@ import { createDraftStore, type DraftStore } from './draft-store';
 import { createProfileStore, type ProfileStore } from './profile-store';
 import { createLicenseStore, type LicenseStore } from './license-store';
 import { createTelemetryStore, type TelemetryStore } from './telemetry-store';
+import { evaluateEconomy } from '../src/core/farm-benchmark';
 import type { Position } from '../src/shared/contracts';
 import {
   defaultSteamRoots, discoverDotaInstallation, inspectGsiInstallation, installGsiConfiguration,
@@ -154,7 +155,34 @@ function updateSnapshot(value: GameSnapshot): void {
     })) notifyNotifications();
   }
   const itemUpdate = itemTracker?.accept(value, preferencesStore?.get().position ?? 1);
-  if (itemUpdate?.changed) notifyItemTiming();
+  if (itemUpdate?.changed) {
+    if (notificationCenter && value.source === 'gsi') {
+      const lateItem = itemUpdate.state.comparisons.find(comparison =>
+        comparison.verdict === 'late' && comparison.observation.firstSeenAt !== null);
+      if (lateItem && notificationCenter.acceptContext({
+        id: `${value.matchId ?? 'session'}:item-late:${lateItem.observation.itemInternalName}`,
+        title: `Timing atrasado: ${lateItem.observation.itemInternalName.replace(/^item_/, '').replace(/_/g, ' ')}`,
+        tags: ['item', 'timing'], audio: 'voice', durationSeconds: 8,
+        scheduledAt: value.gameTime ?? 0,
+      })) notifyNotifications();
+    }
+    notifyItemTiming();
+  }
+  if (notificationCenter && value.source === 'gsi') {
+    const position = preferencesStore?.get().position ?? 1;
+    const economyChecks = [
+      { metric: 'netWorth' as const, actual: value.netWorth, title: 'Patrimônio abaixo da média', tags: ['economia', 'patrimonio'] },
+      { metric: 'gpm' as const, actual: value.gpm, title: 'GPM abaixo da média', tags: ['economia', 'gpm'] },
+    ];
+    for (const check of economyChecks) {
+      const benchmark = evaluateEconomy(position, value.gameTime, check.actual, check.metric);
+      if (benchmark?.classification === 'behind' && notificationCenter.acceptContext({
+        id: `${value.matchId ?? 'session'}:economy:${check.metric}`,
+        title: check.title, tags: check.tags, audio: 'voice', durationSeconds: 8,
+        scheduledAt: value.gameTime ?? 0,
+      })) notifyNotifications();
+    }
+  }
   notify();
 }
 
