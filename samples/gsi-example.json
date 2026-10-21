@@ -1,6 +1,0 @@
-{
-  "map": { "game_state": "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS", "game_time": 982 },
-  "hero": { "name": "npc_dota_hero_axe", "level": 12 },
-  "player": { "last_hits": 112, "denies": 9, "net_worth": 8420, "gpm": 515, "kills": 5, "deaths": 2, "assists": 8 },
-  "auth": { "token": "EXEMPLO_APENAS_NAO_ENVIAR" }
-}

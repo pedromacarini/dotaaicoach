@@ -20,7 +20,7 @@ Entregar três blocos utilizáveis e verificáveis — inventário/timing, Draft
 - `docs/MASTER_IMPLEMENTATION_PLAN.md`
 - `docs/PARIDADE_DOTA2BRASIL.md`
 - `docs/DATA_SOURCES.md`
-- `research/aura-file-inventory.json`
+- `.local/arquivo/evidencias/research/aura-file-inventory.json` (arquivo local ignorado pelo Git)
 - `dota2brasil-analise.json`
 - OpenDota API docs e implementações abertas `xzion/dota2-gsi` e `antonpup/Dota2GSI`
 
@@ -157,7 +157,7 @@ Entregar três blocos utilizáveis e verificáveis — inventário/timing, Draft
 2. Corrigir achados materiais e repetir o ciclo até ficar limpo.
 3. Rodar `npm.cmd test` e `npm.cmd run test:library` com o app fechado; executar smokes específicos.
 4. Atualizar `FULL_PARITY_CHECKLIST.md`, `MASTER_IMPLEMENTATION_PLAN.md`, `PARIDADE_DOTA2BRASIL.md`, arquitetura e documento de cada fase.
-5. Reabrir pelo `ABRIR-DOTA-OPEN-OVERLAY.vbs` e registrar uma checklist visual por fase.
+5. Reabrir pelo `ABRIR-DOTA-IACOACH.vbs` e registrar uma checklist visual por fase.
 
 ### Documentation references
 

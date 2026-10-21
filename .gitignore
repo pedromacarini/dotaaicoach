@@ -21,3 +21,7 @@ spirv-cross.dll
 
 # Evidência local do app de referência (arquivo grande/proprietário; manter fora do Git)
 dota2brasil-analise.json
+
+# Área de trabalho local: arquivo histórico e plano self-hosted futuro.
+# Nada dentro desta pasta entra no Git; copie somente o que for aprovado para o projeto.
+.local/

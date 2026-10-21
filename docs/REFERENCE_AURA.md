@@ -1,6 +1,6 @@
 # Levantamento arquitetural do Aura (metadados do REA)
 
-O usuário forneceu um relatório estático de **311,8 MiB** do `app.asar` de um aplicativo local Dota2Brasil Overlay, com **25.390 nós** do grafo. O projeto encontrou **123 caminhos não associados a dependências de terceiros**, armazenados **somente como inventário de caminhos** em `research/aura-file-inventory.json`. O relatório original e qualquer código proprietário **não são distribuídos neste ZIP**.
+O usuário forneceu um relatório estático de **311,8 MiB** do `app.asar` de um aplicativo local Dota2Brasil Overlay, com **25.390 nós** do grafo. O projeto encontrou **123 caminhos não associados a dependências de terceiros**, armazenados **somente como inventário de caminhos** em `.local/arquivo/evidencias/research/aura-file-inventory.json`. O relatório original e qualquer código proprietário **não são distribuídos neste ZIP**; essa pasta é ignorada pelo Git.
 
 ## Organização observada no relatório
 

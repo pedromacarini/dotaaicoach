@@ -3,7 +3,8 @@
 /**
  * Dota Open Library – recuperação local e seletiva de ícones via VPK (v1.3).
  * Somente lê os arquivos da instalação Dota 2; não inclui texturas licenciadas.
- * Node.js >=20. Exportação PNG necessita Source2Viewer-CLI (ValveResourceFormat).
+ * Node.js >=20. Exportação PNG necessita Source2Viewer-CLI (ValveResourceFormat),
+ * mantido localmente em .local/arquivo/raiz/Source2Viewer-CLI.exe.
  * Execute a partir do projeto: node .\dota-library-pack\scripts\recover-vpk-icons.cjs --vpk="X:\...\pak01_dir.vpk"
  */
 const fs = require('node:fs');
@@ -132,7 +133,7 @@ function main(){
  fs.writeFileSync(path.join(reportDir,'vpk-matches.csv'),'\uFEFF'+lines.join('\n')+'\n','utf8');
  console.log('Resumo:',JSON.stringify(report.summary,null,2));
  console.log('Relatório:',path.join(reportDir,'vpk-matches.csv'));
- if(!doRecover){console.log('Modo auditoria: nenhuma imagem alterada. Para extrair, instale Source2Viewer-CLI e use --recover --cli="CAMINHO\\Source2Viewer-CLI.exe"');return;}
+ if(!doRecover){console.log('Modo auditoria: nenhuma imagem alterada. Para extrair, use .local/arquivo/raiz/Source2Viewer-CLI.exe e --recover --cli="CAMINHO\\Source2Viewer-CLI.exe"');return;}
  if(!cliPath||!fs.existsSync(cliPath))throw Error('Source2Viewer-CLI não encontrado. Use --cli="CAMINHO\\Source2Viewer-CLI.exe".');
  let selected=report.rows.filter(r=>r.match==='exato');
  if(allowVariants)console.warn('AVISO: --include-variants não converte variantes automaticamente: faça correspondência manual para evitar atribuir ícones errados.');
