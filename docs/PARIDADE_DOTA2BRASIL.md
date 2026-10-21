@@ -72,7 +72,6 @@ Esta matriz compara o Dota Open Overlay com o artefato instalado do app de refer
 ## Fora do escopo ou dependente de decisão
 
 - Login, assinatura e paywall do app de referência não são necessários para um app comunitário aberto.
-- Auto-accept e automação de inputs precisam de revisão separada de segurança e regras; não entram por padrão.
 - Informação inimiga oculta, leitura de memória, injeção e bypass anticheat continuam proibidos.
 - “Ghost creeps” e memória de visão só podem ser considerados se a entrada for legítima e a política de uso estiver documentada.
 

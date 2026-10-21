@@ -4,7 +4,7 @@ Atualizado em 2026-10-20. Este documento é a fonte rastreável da paridade entr
 
 ## Auditoria complementar do overlay público
 
-Em 2026-10-20 foi revisada a página pública do produto de referência: [dota2brasil.com/overlay](https://dota2brasil.com/overlay). Ela descreve Flash Farm, Meta Items, Power Spike, Skill Certa com talentos, notificações por voz e cronograma editável, MiniMapa Tracker de última posição, Counter Pick 5v5 com confiança/medalha, auto-accept e onboarding/conta. A mesma página marca como “em breve” rota de farme, treinador por voz, conferência dos times e aviso de sumiço. Isso é evidência de funcionalidade declarada, não autorização para copiar código, ativos ou dados privados.
+Em 2026-10-20 foi revisada a página pública do produto de referência: [dota2brasil.com/overlay](https://dota2brasil.com/overlay). Ela descreve Flash Farm, Meta Items, Power Spike, Skill Certa com talentos, notificações por voz e cronograma editável, MiniMapa Tracker de última posição, Counter Pick 5v5 com confiança/medalha e onboarding/conta. Isso é evidência de funcionalidade declarada, não autorização para copiar código, ativos ou dados privados.
 
 ## Como ler
 
@@ -100,7 +100,6 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 | 🔵 | Captura local opt-in com indicador e preview | API Electron oficial e threat model | 7 |
 | 🔵 | Calibração de inventário, skills, talentos e botão Ready | Perfis por resolução/DPI | 7 |
 | 🔵 | Diagnóstico visual com fixtures anonimizadas | Zero persistência/envio por padrão | 7 |
-| 🟠 | Auto-accept opcional | Gate de política Valve/Steam e revisão humana; não iniciar automaticamente | 8 |
 | 🚫 | Memória, DLL, driver, interceptação ou bypass | Fora do escopo | Nunca |
 
 ## Histórico, grupos, lobby e campeonato
@@ -152,7 +151,7 @@ A referência é evidência de produto, não fonte de código, ativos, coordenad
 5. 🔵 Wards, dispel e movimento.
 6. 🔵 Rotas, camps, waves, lane e mapa.
 7. 🔵 Captura e calibração.
-8. 🔵 Onboarding, ajuda, atalhos, vídeo e auto-accept após gate.
+8. 🔵 Onboarding, ajuda, atalhos e vídeo.
 9. 🔵 Histórico, checkpoint, recuperação, grupos/lobby e campeonato.
 10. 🔵 Backend, conta, licença e assinatura.
 11. 🔵 Telemetria e Sentry consentidos.

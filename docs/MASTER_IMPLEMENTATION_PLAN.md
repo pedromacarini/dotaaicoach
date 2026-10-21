@@ -287,38 +287,7 @@ O redimensionamento desta fase é proporcional, por escala fixa de 75% a 175%; n
 - Não persistir screenshots automaticamente.
 - Não expor frame bruto ao renderer sem necessidade e limite.
 
-## Phase 8 — Auto-accept opcional
-
-**How this serves the primary goal:** reduz uma ação repetitiva somente quando permitido e com controle total do usuário.
-
-### What to implement
-
-1. Gate obrigatório: revisar regras atuais da Valve/Steam e registrar decisão. Se automação não for claramente permitida, entregar somente alerta de “partida encontrada”.
-2. Reutilizar o detector visual da Phase 7; nunca ler memória ou interceptar rede.
-3. Criar máquina de estados: armado → detectado → confirmação opcional → uma ação → cooldown.
-4. Opt-in explícito, desligado por padrão, hotkey de pânico, limite de frequência e log local auditável sem screenshots.
-5. A ação deve ser restrita à janela do Dota em foreground e às coordenadas calibradas; falhar fechado.
-6. Não habilitar em build distribuída até passar revisão de política e testes manuais.
-
-### Documentation references
-
-- Exclusões atuais: `docs/ROADMAP.md:18-22`
-- Segurança/escopo: `docs/PARIDADE_DOTA2BRASIL.md:68-75`
-- Atalho global atual: `electron/main.ts:402-406`
-
-### Verification checklist
-
-- Simulador de janela prova zero ações fora do estado armado.
-- Testes de falso positivo, janela errada, múltiplos monitores, cooldown e panic key.
-- Revisão humana obrigatória antes de habilitar em produção.
-
-### Anti-pattern guards
-
-- Não usar spam de cliques, key sender genérico ou coordenada global sem validação.
-- Não contornar bloqueios do jogo.
-- Não esconder do usuário quando a automação está armada.
-
-## Phase 9 — Checkpoint, recuperação e robustez desktop
+## Phase 8 — Checkpoint, recuperação e robustez desktop
 
 **How this serves the primary goal:** evita perda de configuração e histórico quando o app ou o jogo fecha inesperadamente.
 
@@ -441,7 +410,7 @@ O redimensionamento desta fase é proporcional, por escala fixa de 75% a 175%; n
 ### Anti-pattern guards
 
 - Não chamar de pronto o que só passou em demo.
-- Não habilitar auto-accept, captura ou telemetria por padrão.
+- Não habilitar captura ou telemetria por padrão.
 - Não publicar sem rollback e backup testados.
 
 ## Ordem de execução resumida
@@ -453,11 +422,10 @@ O redimensionamento desta fase é proporcional, por escala fixa de 75% a 175%; n
 5. Wards, dispel e movimento.
 6. Rotas de farm e mapa.
 7. Captura/calibração.
-8. Auto-accept após gate de regras.
-9. Robustez/checkpoint.
-10. Conta/licença/assinatura.
-11. Telemetria/Sentry.
-12. Release candidate e validação real completa.
+8. Robustez/checkpoint.
+9. Conta/licença/assinatura.
+10. Telemetria/Sentry.
+11. Release candidate e validação real completa.
 
 ## Definition of done por bloco
 

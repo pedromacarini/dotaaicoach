@@ -43,7 +43,6 @@ Entregar um overlay local que acompanhe cada fase legítima da partida — draft
 2. Capturar somente o jogador local e fontes explicitamente escolhidas pelo usuário.
 3. Campos ausentes permanecem `null`/`unknown`; nunca virar zero, falso ou “inimigo não visto”.
 4. Toda estatística precisa de fonte, patch, amostra e rótulo de confiança.
-5. Auto-accept só entra em build distribuída após revisão de política e teste humano; default desligado.
 6. Toda fase deve adicionar testes puros, smoke Electron quando aplicável, documentação e migração de schema.
 
 ### Verificação
@@ -207,25 +206,7 @@ O GSI atual não contém inimigos nem coordenadas. A fase não pode ser implemen
 - Iniciar/parar captura, múltiplos monitores, DPI 100/125/150%, fullscreen e janela sem borda.
 - Confirmar que frames não entram em logs, telemetria ou Sentry.
 
-## Phase 8 — Auto-accept com gate de segurança
-
-**Como serve ao objetivo principal:** automatiza uma ação repetitiva apenas se for permitida e sempre sob controle do jogador.
-
-### Implementar somente após decisão
-
-1. Revisar regras atuais da Valve/Steam e registrar ADR; se houver dúvida, entregar apenas alerta de partida encontrada.
-2. Detector usa somente captura/calibração da Phase 7.
-3. Máquina de estados: desligado → armado → detectado → confirmação opcional → uma ação → cooldown.
-4. Opt-in explícito, desligado por padrão, hotkey de pânico, limite de frequência e log local auditável.
-5. Ação somente com janela Dota em foreground e região calibrada; falhar fechado.
-6. Não distribuir habilitado até revisão humana e testes de falso positivo.
-
-### Verificação
-
-- Simulador prova zero ações fora do estado armado.
-- Testes janela errada, múltiplos monitores, cooldown, cancelamento e panic key.
-
-## Phase 9 — Onboarding, atalhos, robustez e histórico
+## Phase 8 — Onboarding, atalhos, robustez e histórico
 
 **Como serve ao objetivo principal:** transforma módulos técnicos em uma experiência instalável, recuperável e fácil de testar.
 
@@ -309,11 +290,10 @@ O GSI atual não contém inimigos nem coordenadas. A fase não pode ser implemen
 5. Phase 5 — rotas/camps/waves/lane.
 6. Phase 6 — última posição legítima.
 7. Phase 7 — captura e calibração.
-8. Phase 8 — auto-accept somente após gate.
-9. Phase 9 — onboarding, robustez e histórico.
-10. Phase 10 — conta/servidor somente se distribuição exigir.
-11. Phase 11 — Sentry remoto opt-in.
-12. Phase 12 — release candidate e validação final.
+8. Phase 8 — onboarding, robustez e histórico.
+9. Phase 9 — conta/servidor somente se distribuição exigir.
+10. Phase 10 — Sentry remoto opt-in.
+11. Phase 11 — release candidate e validação final.
 
 ## Definition of done de cada fase
 
@@ -334,4 +314,4 @@ O GSI atual não contém inimigos nem coordenadas. A fase não pode ser implemen
 - Inferir visão, posição atual ou ward inimiga a partir de ausência.
 - Chamar fixture sintética de benchmark profissional/real.
 - Enviar screenshot, payload GSI, inventário ou histórico detalhado para servidor.
-- Habilitar captura, voz, auto-accept, telemetria ou Sentry sem opt-in.
+- Habilitar captura, voz, telemetria ou Sentry sem opt-in.
