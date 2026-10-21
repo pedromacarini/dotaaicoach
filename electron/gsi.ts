@@ -1,6 +1,6 @@
 import * as http from 'node:http';
 import * as crypto from 'node:crypto';
-import type { GameSnapshot, InventoryArea, InventorySlot, InventorySnapshot } from '../src/shared/contracts';
+import type { DraftLivePhase, DraftPick, DraftPickKind, DraftTeam, GameSnapshot, InventoryArea, InventorySlot, InventorySnapshot, DraftLiveState } from '../src/shared/contracts';
 
 export const GSI_PORT = 3199;
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -21,6 +21,58 @@ const identifier = (v: unknown): string | null => {
   if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return String(Math.trunc(v));
   return null;
 };
+const draftPhase = (v: unknown): DraftLivePhase => {
+  const value = String(v ?? '').toLowerCase();
+  if (value.includes('strategy')) return 'strategy';
+  if (value.includes('pick')) return 'picking';
+  if (value.includes('ban')) return 'banning';
+  if (value.includes('complete') || value.includes('done')) return 'complete';
+  if (value.includes('lobby')) return 'lobby';
+  return 'unknown';
+};
+const draftTeam = (v: unknown): DraftTeam => {
+  const value = String(v ?? '').toLowerCase();
+  if (value.includes('radiant') || value === '2' || value === '0') return 'radiant';
+  if (value.includes('dire') || value === '3' || value === '1') return 'dire';
+  return 'unknown';
+};
+function normalizeDraftPick(value: unknown, kind: DraftPickKind, index: number, timestamp: number): DraftPick | null {
+  const raw = record(value);
+  const heroId = num(raw.hero_id) ?? num(raw.heroId) ?? num(raw.id);
+  if (heroId === null || !Number.isInteger(heroId) || heroId <= 0) return null;
+  const order = num(raw.order) ?? num(raw.pick_order) ?? index;
+  return { heroId: Math.trunc(heroId), team: draftTeam(raw.team ?? raw.team_name ?? raw.side), kind,
+    order: Math.max(0, Math.trunc(order)), source: 'gsi', confirmedAt: num(raw.confirmed_at) ?? timestamp };
+}
+function normalizeDraftArray(value: unknown, kind: DraftPickKind, timestamp: number): DraftPick[] {
+  const candidate = record(value);
+  const entries = Array.isArray(value) ? value : (num(candidate.hero_id) !== null || num(candidate.heroId) !== null || num(candidate.id) !== null)
+    ? [value] : Object.values(candidate);
+  const unique = new Map<string, DraftPick>();
+  entries.forEach((entry, index) => {
+    const pick = normalizeDraftPick(entry, kind, index, timestamp);
+    if (pick) unique.set(`${pick.kind}:${pick.order}:${pick.heroId}`, pick);
+  });
+  return [...unique.values()].sort((left, right) => left.order - right.order || left.heroId - right.heroId);
+}
+export function unavailableDraft(): DraftLiveState {
+  return { source: 'unavailable', phase: 'unknown', activeTeam: 'unknown', localTeam: 'unknown', secondsRemaining: null,
+    allies: [], enemies: [], bans: [], revision: 0, receivedAt: null };
+}
+export function normalizeDraft(value: unknown, timestamp = Date.now(), localTeam: DraftTeam = 'unknown'): DraftLiveState {
+  const raw = record(value);
+  if (!Object.keys(raw).length) return unavailableDraft();
+  const picks = normalizeDraftArray(raw.picks ?? raw.pick ?? raw.picked ?? raw.picks_list, 'pick', timestamp);
+  const bans = normalizeDraftArray(raw.bans ?? raw.ban ?? raw.banned, 'ban', timestamp);
+  const phase = draftPhase(raw.phase ?? raw.state ?? raw.stage ?? (picks.length || bans.length ? 'picking' : null));
+  const activeTeam = draftTeam(raw.active_team ?? raw.activeTeam ?? raw.activeteam ?? raw.team);
+  const secondsRemaining = num(raw.seconds_remaining) ?? num(raw.secondsRemaining) ?? num(raw.time_remaining) ?? num(raw.activeteam_time_remaining);
+  const allies = localTeam === 'unknown' ? picks.filter(pick => pick.team === 'radiant') : picks.filter(pick => pick.team === localTeam);
+  const enemies = localTeam === 'unknown' ? picks.filter(pick => pick.team === 'dire') : picks.filter(pick => pick.team !== 'unknown' && pick.team !== localTeam);
+  return { source: 'gsi', phase, activeTeam, localTeam, secondsRemaining,
+    allies, enemies, bans,
+    revision: 0, receivedAt: timestamp };
+}
 function normalizeLearnedAbilities(value: unknown): Record<string, number> {
   const source = record(value); const result: Record<string, number> = {};
   for (const entry of Object.values(source)) {
@@ -70,10 +122,13 @@ export function formatHeroName(hero: string | null): string | null {
 export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapshot {
   const payload = record(input);
   const map = record(payload.map), player = record(payload.player), hero = record(payload.hero);
+  const localTeam = draftTeam(player.team ?? player.team_name ?? player.side ?? player.player_team);
   return {
     source: 'gsi', connected: true, receivedAt: timestamp,
     gameTime: num(map.game_time) ?? num(map.clock_time),
     rawGameTime: num(map.game_time),
+    patch: str(map.patch),
+    mode: map.game_mode === 'turbo' || map.game_mode === 'normal' ? map.game_mode : null,
     matchId: identifier(map.matchid) ?? identifier(map.match_id),
     gameState: str(map.game_state),
     playerActivity: str(player.activity),
@@ -89,6 +144,7 @@ export function normalizeGsi(input: unknown, timestamp = Date.now()): GameSnapsh
     assists: num(player.assists),
     learnedAbilities: normalizeLearnedAbilities(payload.abilities),
     inventory: normalizeInventory(payload.items),
+    draft: normalizeDraft(payload.draft, timestamp, localTeam),
   };
 }
 
@@ -142,6 +198,7 @@ export function makeGsiConfig(token: string): string {
         "hero"       "1"
         "abilities"  "1"
         "items"      "1"
+        "draft"      "1"
     }
     "auth"
     {

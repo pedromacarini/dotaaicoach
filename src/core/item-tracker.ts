@@ -1,4 +1,4 @@
-import type { GameSnapshot, InventorySnapshot, ItemObservation, ItemTimingState, Position } from '../shared/contracts';
+import type { GameSnapshot, InventorySnapshot, ItemObservation, ItemTimingBenchmark, ItemTimingMode, ItemTimingState, Position } from '../shared/contracts';
 import { compareItemObservations, DEMO_ITEM_TIMING_BENCHMARKS } from './item-timing';
 
 const copyInventory = (inventory: InventorySnapshot): InventorySnapshot => ({
@@ -12,7 +12,10 @@ export interface ItemTracker {
   getState(): ItemTimingState;
 }
 
-export function createItemTracker(): ItemTracker {
+export function createItemTracker(options: {
+  benchmarks?: readonly ItemTimingBenchmark[];
+  getBenchmarkContext?: () => { patch: string | null; mode: ItemTimingMode | null };
+} = {}): ItemTracker {
   let sessionKey: string | null = null;
   let source: GameSnapshot['source'] = 'idle';
   let inventory = copyInventory(EMPTY_INVENTORY);
@@ -22,13 +25,19 @@ export function createItemTracker(): ItemTracker {
   let previousReliableMatchId: string | null = null;
   let currentPosition: Position = 1;
 
-  const state = (position: Position): ItemTimingState => ({
+  const state = (position: Position): ItemTimingState => {
+    const comparisons = compareItemObservations(observations, heroInternalName, position,
+      source === 'demo' ? DEMO_ITEM_TIMING_BENCHMARKS : options.benchmarks ?? [],
+      source === 'demo' ? { patch: '7.41-fixture', mode: 'normal' } :
+        options.getBenchmarkContext?.() ?? { patch: null, mode: null });
+    return {
     sessionKey, source,
-    validation: source === 'demo' ? 'synthetic-demo' : source === 'gsi' ? 'unvalidated-gsi' : 'none',
+    validation: source === 'demo' ? 'synthetic-demo' : source === 'gsi' && comparisons.some(value => value.benchmark)
+      ? 'historical-local' : source === 'gsi' ? 'unvalidated-gsi' : 'none',
     inventory: copyInventory(inventory),
     observations: observations.map(value => ({ ...value })),
-    comparisons: compareItemObservations(observations, heroInternalName, position, DEMO_ITEM_TIMING_BENCHMARKS),
-  });
+    comparisons,
+  }; };
   const clear = (): void => {
     sessionKey = null; source = 'idle'; inventory = copyInventory(EMPTY_INVENTORY);
     heroInternalName = null; observations = []; previousGameTime = null; previousReliableMatchId = null;

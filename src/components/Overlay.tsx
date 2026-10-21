@@ -14,7 +14,7 @@ function speakLocal(text: string): void {
   window.speechSynthesis.speak(utterance);
 }
 export function Overlay() {
-  const { snapshot, preferences, status, notificationCenter, itemTiming } = useOverlay();
+  const { snapshot, preferences, status, notificationCenter, itemTiming, draftLive } = useOverlay();
   const modules = preferences.overlayLayout.modules;
   const hasAdviceModule = modules.skill || modules.items;
   const { advice, loading, error } = useMatchAdvice(snapshot, preferences.position, hasAdviceModule);
@@ -115,6 +115,7 @@ export function Overlay() {
           </div>}
         </div>}
       </div>}
+      {draftLive.source === 'gsi' && draftLive.prompt?.visible && <div className="overlay-draft-prompt" role="status"><strong>DRAFT AO VIVO</strong><span>{draftLive.enemies.length ? `${draftLive.enemies.length} inimigo(s) confirmado(s)` : 'Aguardando escolhas confirmadas'}</span><button type="button" onClick={() => void window.dotaOverlay.dismissDraftPrompt('follow')}>Acompanhar</button></div>}
       {modules.items && <div className="overlay-item-timing">
         <div><small>PRIMEIRA OBSERVAÇÃO · NÃO É COMPRA</small><strong>{itemTiming.inventory.observation === 'unknown' ? 'Inventário ainda desconhecido' : `${itemTiming.observations.length} tipo(s) observado(s)`}</strong></div>
         {itemTiming.comparisons.length > 0 && (() => { const last = itemTiming.comparisons[itemTiming.comparisons.length - 1]; const delta = last.deltaSeconds; const deltaLabel = delta === null ? '' : ` ${delta >= 0 ? '+' : '−'}${formatClock(Math.abs(delta))}`; return <span className={last.verdict}>{last.observation.itemInternalName.replace(/^item_/, '').replaceAll('_', ' ')} · {last.verdict === 'no-sample' ? 'sem amostra' : last.verdict === 'unknown-time' ? 'tempo desconhecido' : last.verdict === 'early' ? 'adiantado' : last.verdict === 'late' ? 'atrasado' : 'no esperado'}{deltaLabel}</span>; })()}

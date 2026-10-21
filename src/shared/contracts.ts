@@ -5,6 +5,8 @@ export interface GameSnapshot {
   gameTime: number | null;
   /** Valor bruto de map.game_time, antes da calibração do início da partida. */
   rawGameTime?: number | null;
+  patch?: string | null;
+  mode?: ItemTimingMode | null;
   matchId: string | null;
   gameState: string | null;
   playerActivity: string | null;
@@ -20,6 +22,8 @@ export interface GameSnapshot {
   assists: number | null;
   learnedAbilities?: Record<string, number>;
   inventory: InventorySnapshot;
+  /** Draft opcional enviado pelo GSI. Ausência nunca é inferida. */
+  draft?: DraftLiveState;
 }
 
 export type InventoryArea = 'active' | 'backpack' | 'stash' | 'teleport' | 'neutral';
@@ -46,17 +50,36 @@ export interface ItemObservation {
 }
 
 export type ItemTimingVerdict = 'early' | 'expected' | 'late' | 'no-sample' | 'unknown-time';
+export type ItemTimingMode = 'normal' | 'turbo';
+export type ItemTimingBenchmarkSourceKind = 'opendota-purchase-log' | 'stratz-purchase-log' | 'synthetic-fixture';
 
-export interface ItemTimingBenchmark {
+/** Uma primeira compra histórica extraída de purchase_log; nunca representa o inventário ao vivo. */
+export interface ItemPurchaseLogSample {
+  matchId: string;
   heroInternalName: string;
   position: Position;
   itemInternalName: string;
-  expectedSeconds: number;
-  toleranceSeconds: number;
+  purchaseTimeSeconds: number;
+  patch: string;
+  mode: ItemTimingMode;
+  source: string;
+  sourceKind: Exclude<ItemTimingBenchmarkSourceKind, 'synthetic-fixture'>;
+}
+
+export interface ItemTimingBenchmark {
+  schemaVersion: 1;
+  heroInternalName: string;
+  position: Position;
+  itemInternalName: string;
+  medianSeconds: number;
+  p25Seconds: number;
+  p75Seconds: number;
   sampleSize: number;
   patch: string;
+  mode: ItemTimingMode;
   source: string;
-  sourceKind: 'synthetic-fixture';
+  sourceKind: ItemTimingBenchmarkSourceKind;
+  updatedAt: string;
 }
 
 export interface ItemTimingComparison {
@@ -69,7 +92,7 @@ export interface ItemTimingComparison {
 export interface ItemTimingState {
   sessionKey: string | null;
   source: GameSnapshot['source'];
-  validation: 'none' | 'synthetic-demo' | 'unvalidated-gsi';
+  validation: 'none' | 'synthetic-demo' | 'historical-local' | 'unvalidated-gsi';
   inventory: InventorySnapshot;
   observations: ItemObservation[];
   comparisons: ItemTimingComparison[];
@@ -92,6 +115,43 @@ export interface DraftScenarioState {
   schemaVersion: 1;
   current: DraftScenario;
   saved: DraftScenario[];
+}
+
+export type DraftLivePhase = 'lobby' | 'strategy' | 'picking' | 'banning' | 'complete' | 'unknown';
+export type DraftTeam = 'radiant' | 'dire' | 'unknown';
+export type DraftPickKind = 'pick' | 'ban';
+export type DraftPickSource = 'gsi' | 'manual';
+
+export interface DraftPick {
+  heroId: number;
+  team: DraftTeam;
+  kind: DraftPickKind;
+  order: number;
+  source: DraftPickSource;
+  confirmedAt: number;
+}
+
+export interface DraftContextPrompt {
+  visible: boolean;
+  message: string;
+  phase: DraftLivePhase;
+  cooldownUntil: number | null;
+  action: 'ranked' | 'follow' | 'later' | null;
+}
+
+export interface DraftLiveState {
+  source: 'gsi' | 'manual' | 'unavailable';
+  /** Time do jogador local, quando o payload do GSI informar. */
+  localTeam: DraftTeam;
+  phase: DraftLivePhase;
+  activeTeam: DraftTeam;
+  secondsRemaining: number | null;
+  allies: DraftPick[];
+  enemies: DraftPick[];
+  bans: DraftPick[];
+  revision: number;
+  receivedAt: number | null;
+  prompt?: DraftContextPrompt;
 }
 
 export interface DraftMatchupRow {
@@ -350,6 +410,7 @@ export interface DotaOverlayAPI {
   getMatchSessions(): Promise<MatchSessionState>;
   getItemTiming(): Promise<ItemTimingState>;
   getDraftScenarios(): Promise<DraftScenarioState>;
+  getDraftLive(): Promise<DraftLiveState>;
   onSnapshot(handler: (snapshot: GameSnapshot) => void): () => void;
   onStatus(handler: (status: AppStatus) => void): () => void;
   onPreferences(handler: (preferences: AppPreferences) => void): () => void;
@@ -357,6 +418,8 @@ export interface DotaOverlayAPI {
   onMatchSessions(handler: (update: MatchSessionUpdate) => void): () => void;
   onItemTiming(handler: (state: ItemTimingState) => void): () => void;
   onDraftScenarios(handler: (state: DraftScenarioState) => void): () => void;
+  onDraftLive(handler: (state: DraftLiveState) => void): () => void;
+  dismissDraftPrompt(action: 'ranked' | 'follow' | 'later'): Promise<DraftLiveState>;
   setDemo(enabled: boolean): Promise<void>;
   setOverlayVisible(visible: boolean): Promise<void>;
   saveGsiConfig(): Promise<{ canceled: boolean; filePath?: string }>;

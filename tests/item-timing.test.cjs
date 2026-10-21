@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { createItemTracker } = require('../dist-electron/src/core/item-tracker.js');
-const { compareItemTiming } = require('../dist-electron/src/core/item-timing.js');
+const { aggregatePurchaseLogBenchmarks, compareItemTiming } = require('../dist-electron/src/core/item-timing.js');
 
 const inventory = slots => ({observation:'observed',slots});
 const present = (key, area, itemInternalName) => ({key,area,state:'present',itemInternalName,charges:null});
@@ -53,7 +53,7 @@ test('item desconhecido permanece rastreável e matchid novo reinicia sessão', 
 test('nova identidade sem herói não reutiliza benchmark do herói anterior', () => {
   const tracker=createItemTracker();
   tracker.accept(snapshot({matchId:'m1',gameTime:260,inventory:inventory([present('slot0','active','item_boots')])}),3);
-  assert.ok(tracker.getState().comparisons[0].benchmark);
+  assert.equal(tracker.getState().comparisons[0].benchmark,null,'GSI sem benchmark histórico deve falhar fechado');
   tracker.accept(snapshot({matchId:'m2',gameTime:100,heroInternalName:null,heroName:null,
     inventory:inventory([present('slot0','active','item_blink')])}),3);
   const state=tracker.getState();
@@ -84,12 +84,46 @@ test('pacote duplicado não produz mudança publicável', () => {
 });
 
 test('benchmark classifica cedo, esperado, tarde e sem amostra', () => {
-  const benchmark={heroInternalName:'npc_dota_hero_axe',position:3,itemInternalName:'item_blink',expectedSeconds:600,
-    toleranceSeconds:60,sampleSize:10,patch:'fixture',source:'teste',sourceKind:'synthetic-fixture'};
+  const benchmark={schemaVersion:1,heroInternalName:'npc_dota_hero_axe',position:3,itemInternalName:'item_blink',
+    medianSeconds:600,p25Seconds:540,p75Seconds:660,sampleSize:30,patch:'7.41',mode:'normal',source:'OpenDota',
+    sourceKind:'opendota-purchase-log',updatedAt:'2026-10-21T00:00:00.000Z'};
   const observation=time=>({itemInternalName:'item_blink',firstSeenAt:time,firstSeenReceivedAt:1000,firstSeenArea:'active'});
-  assert.equal(compareItemTiming(observation(500),'npc_dota_hero_axe',3,[benchmark]).verdict,'early');
-  assert.equal(compareItemTiming(observation(600),'npc_dota_hero_axe',3,[benchmark]).verdict,'expected');
-  assert.equal(compareItemTiming(observation(700),'npc_dota_hero_axe',3,[benchmark]).verdict,'late');
-  assert.equal(compareItemTiming(observation(null),'npc_dota_hero_axe',3,[benchmark]).verdict,'unknown-time');
-  assert.equal(compareItemTiming({...observation(600),itemInternalName:'item_unknown'},'npc_dota_hero_axe',3,[benchmark]).verdict,'no-sample');
+  const context={patch:'7.41',mode:'normal'};
+  assert.equal(compareItemTiming(observation(500),'npc_dota_hero_axe',3,[benchmark],context).verdict,'early');
+  assert.equal(compareItemTiming(observation(600),'npc_dota_hero_axe',3,[benchmark],context).verdict,'expected');
+  assert.equal(compareItemTiming(observation(700),'npc_dota_hero_axe',3,[benchmark],context).verdict,'late');
+  assert.equal(compareItemTiming(observation(null),'npc_dota_hero_axe',3,[benchmark],context).verdict,'unknown-time');
+  assert.equal(compareItemTiming({...observation(600),itemInternalName:'item_unknown'},'npc_dota_hero_axe',3,[benchmark],context).verdict,'no-sample');
+  assert.equal(compareItemTiming(observation(700),'npc_dota_hero_axe',3,[benchmark],{patch:'7.40',mode:'normal'}).verdict,'no-sample');
+  assert.equal(compareItemTiming(observation(700),'npc_dota_hero_axe',3,[benchmark],{patch:'7.41',mode:null}).verdict,'no-sample');
+});
+
+test('purchase_log agrega primeira compra em mediana/p25/p75 e aplica amostra mínima', () => {
+  const row=(matchId,time,overrides={})=>({matchId,heroInternalName:'npc_dota_hero_axe',position:3,
+    itemInternalName:'item_blink',purchaseTimeSeconds:time,patch:'7.41',mode:'normal',source:'OpenDota',
+    sourceKind:'opendota-purchase-log',...overrides});
+  const samples=Array.from({length:30},(_,index)=>row(`m${index}`,300+index*10));
+  samples.push(row('m0',900));
+  const result=aggregatePurchaseLogBenchmarks(samples,{updatedAt:'2026-10-21T12:00:00.000Z'});
+  assert.equal(result.length,1);
+  assert.deepEqual(result[0],{schemaVersion:1,heroInternalName:'npc_dota_hero_axe',position:3,
+    itemInternalName:'item_blink',medianSeconds:445,p25Seconds:373,p75Seconds:518,sampleSize:30,
+    patch:'7.41',mode:'normal',source:'OpenDota',sourceKind:'opendota-purchase-log',
+    updatedAt:'2026-10-21T12:00:00.000Z'});
+  assert.equal(aggregatePurchaseLogBenchmarks(samples.slice(0,29)).length,0);
+});
+
+test('tracker usa somente benchmark local compatível com patch e modo', () => {
+  const benchmark={schemaVersion:1,heroInternalName:'npc_dota_hero_axe',position:3,itemInternalName:'item_blink',
+    medianSeconds:600,p25Seconds:540,p75Seconds:660,sampleSize:30,patch:'7.41',mode:'normal',source:'OpenDota',
+    sourceKind:'opendota-purchase-log',updatedAt:'2026-10-21T00:00:00.000Z'};
+  let context={patch:'7.40',mode:'normal'};
+  const incompatible=createItemTracker({benchmarks:[benchmark],getBenchmarkContext:()=>context});
+  incompatible.accept(snapshot({gameTime:700,inventory:inventory([present('slot0','active','item_blink')])}),3);
+  assert.equal(incompatible.getState().comparisons[0].verdict,'no-sample');
+  context={patch:'7.41',mode:'normal'};
+  const compatible=createItemTracker({benchmarks:[benchmark],getBenchmarkContext:()=>context});
+  compatible.accept(snapshot({gameTime:700,inventory:inventory([present('slot0','active','item_blink')])}),3);
+  assert.equal(compatible.getState().comparisons[0].verdict,'late');
+  assert.equal(compatible.getState().validation,'historical-local');
 });

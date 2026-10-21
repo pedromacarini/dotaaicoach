@@ -28,7 +28,7 @@ export function ItemTimingPage({ state }: { state: ItemTimingState }) {
       </section>
       <section className="settings-card"><div className="card-top"><div><h3>Suporte observado</h3><p>Quantidade somente do inventário próprio recebido pelo GSI.</p></div><span className="mini-label">{state.inventory.observation === 'unknown' ? 'SEM DADO' : 'LOCAL'}</span></div><div className="hero-stats ward-counts">{wardCounts.map(ward => <div key={ward.key}><small>{ward.name}</small><strong>{state.inventory.observation === 'unknown' ? '—' : ward.count}</strong></div>)}</div></section>
       <section className="settings-card item-evidence"><div className="card-top"><div><h3>Qualidade da evidência</h3><p>O tracker deduplica troca de slot, mochila, baú, combinação e reaparição.</p></div></div>
-        <div className="evidence-line"><span>Fonte atual</span><strong>{state.validation === 'synthetic-demo' ? 'Fixture autoral sintética' : state.validation === 'unvalidated-gsi' ? 'GSI local ainda não validado no Dota' : 'Nenhuma'}</strong></div>
+        <div className="evidence-line"><span>Fonte atual</span><strong>{state.validation === 'synthetic-demo' ? 'Fixture autoral sintética' : state.validation === 'historical-local' ? 'Benchmark histórico local' : state.validation === 'unvalidated-gsi' ? 'GSI local sem benchmark compatível' : 'Nenhuma'}</strong></div>
         <div className="evidence-line"><span>Evento registrado</span><strong>Primeira observação, não compra</strong></div>
         <div className="evidence-line"><span>Payload salvo</span><strong>Não — somente estado compacto</strong></div>
       </section>
@@ -37,7 +37,7 @@ export function ItemTimingPage({ state }: { state: ItemTimingState }) {
       {state.comparisons.length === 0 ? <div className="stats-empty">Ative a demonstração ou conecte uma partida para começar.</div> : <div className="timing-list">{state.comparisons.map(comparison => <article key={comparison.observation.itemInternalName}>
         <div><strong>{itemName(comparison.observation.itemInternalName)}</strong><small>{areaNames[comparison.observation.firstSeenArea]} · visto às {formatClock(comparison.observation.firstSeenAt)}</small></div>
         <span className={`timing-verdict ${comparison.verdict}`}>{verdictNames[comparison.verdict]}</span>
-        <div className="timing-benchmark">{comparison.benchmark ? <><strong>{formatClock(comparison.benchmark.expectedSeconds)}</strong><small>referência ±{Math.round(comparison.benchmark.toleranceSeconds / 60)} min · n={comparison.benchmark.sampleSize}</small><small>{comparison.benchmark.source} · {comparison.benchmark.patch}</small></> : <small>Nenhum benchmark compatível para herói/posição/item.</small>}</div>
+        <div className="timing-benchmark">{comparison.benchmark ? <><strong>mediana {formatClock(comparison.benchmark.medianSeconds)}</strong><small>p25–p75 {formatClock(comparison.benchmark.p25Seconds)}–{formatClock(comparison.benchmark.p75Seconds)} · n={comparison.benchmark.sampleSize}</small><small>{comparison.benchmark.source} · {comparison.benchmark.patch} · {comparison.benchmark.mode}</small></> : <small>Nenhum benchmark compatível para herói/posição/item.</small>}</div>
       </article>)}</div>}
     </section>
     <div className="stats-disclaimer"><strong>Limite semântico:</strong> o GSI mostra estado do inventário em pacotes. Troca, courier, combinação, venda e reaparição podem produzir mudanças, mas o app não as chama de compra. A fixture da demo não é dado profissional.</div>

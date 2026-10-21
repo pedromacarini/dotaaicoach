@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AppPreferences, AppStatus, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LicenseStatus, LocalProfile, MatchSessionState, NotificationCenterState, TelemetryState } from '../shared/contracts';
+import type { AppPreferences, AppStatus, DraftLiveState, DraftScenarioState, GameSnapshot, GsiDiagnostics, ItemTimingState, LicenseStatus, LocalProfile, MatchSessionState, NotificationCenterState, TelemetryState } from '../shared/contracts';
 
 export const empty: GameSnapshot = {
   source: 'idle', connected: false, receivedAt: null, gameTime: null, matchId: null, gameState: null,
@@ -36,6 +36,11 @@ export const defaultDraftScenarios: DraftScenarioState = {
     allies: [], enemies: [], bans: [], updatedAt: 0 },
   saved: [],
 };
+export const defaultDraftLive: DraftLiveState = {
+  source: 'unavailable', phase: 'unknown', activeTeam: 'unknown', localTeam: 'unknown', secondsRemaining: null,
+  allies: [], enemies: [], bans: [], revision: 0, receivedAt: null,
+  prompt: { visible: false, message: 'Aguardando dados do draft do GSI.', phase: 'unknown', cooldownUntil: null, action: null },
+};
 export const defaultTelemetry: TelemetryState = { schemaVersion: 1, enabled: false, events: [] };
 export const formatClock = (time: number | null): string => {
   if (time == null) return '--:--';
@@ -52,6 +57,7 @@ export function useOverlay() {
   const [notificationCenter, setNotificationCenter] = useState<NotificationCenterState>(defaultNotificationCenter);
   const [itemTiming, setItemTiming] = useState<ItemTimingState>(defaultItemTiming);
   const [draftScenarios, setDraftScenarios] = useState<DraftScenarioState>(defaultDraftScenarios);
+  const [draftLive, setDraftLive] = useState<DraftLiveState>(defaultDraftLive);
   const [localProfile, setLocalProfile] = useState<LocalProfile | null>(null);
   const [license, setLicense] = useState<LicenseStatus | null>(null);
   const [telemetry, setTelemetry] = useState<TelemetryState>(defaultTelemetry);
@@ -79,6 +85,7 @@ export function useOverlay() {
     const offNotifications = api.onNotificationCenter(value => { if (mounted) setNotificationCenter(value); });
     const offItemTiming = api.onItemTiming(value => { if (mounted) setItemTiming(value); });
     const offDraftScenarios = api.onDraftScenarios(value => { if (mounted) setDraftScenarios(value); });
+    const offDraftLive = api.onDraftLive(value => { if (mounted) setDraftLive(value); });
     void api.getSnapshot().then(v => { if (mounted) setSnapshot(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar dados GSI: '+String(err)})); });
     void api.getStatus().then(v => { if (mounted) setStatus(v); })
@@ -101,7 +108,9 @@ export function useOverlay() {
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar timing de itens: '+String(err)})); });
     if (tracksSessions) void api.getDraftScenarios().then(v => { if (mounted) setDraftScenarios(v); })
       .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar drafts: '+String(err)})); });
-    return () => { mounted = false; offSnapshot(); offStatus(); offPreferences(); offGsiDiagnostics(); offMatchSessions(); offNotifications(); offItemTiming(); offDraftScenarios(); };
+    void api.getDraftLive().then(v => { if (mounted) setDraftLive(v); })
+      .catch(err => { if (mounted) setStatus(old => ({...old, error: 'Falha ao buscar draft ao vivo: '+String(err)})); });
+    return () => { mounted = false; offSnapshot(); offStatus(); offPreferences(); offGsiDiagnostics(); offMatchSessions(); offNotifications(); offItemTiming(); offDraftScenarios(); offDraftLive(); };
   }, []);
-  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry };
+  return { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, draftLive, setDraftLive, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry };
 }

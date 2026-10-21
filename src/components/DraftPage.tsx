@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadSection, type HeroRecord } from '../data/catalog';
 import { reconcileDraftScenario, recommendDraft, shouldApplyDraftStoreEcho, validateDraftScenario, type DraftHero } from '../core/draft-advisor';
-import type { DraftMatchupEvidence, DraftScenario, DraftScenarioState } from '../shared/contracts';
+import type { DraftLiveState, DraftMatchupEvidence, DraftScenario, DraftScenarioState } from '../shared/contracts';
 
 const modeLabel = { 'all-pick': 'All Pick', turbo: 'Turbo', captains: "Captain's Mode" } as const;
 const positionLabel = ['','Carry','Mid','Offlane','Suporte 4','Suporte 5'];
@@ -20,8 +20,9 @@ function HeroGroup({ title, kind, ids, heroes, blocked, onAdd, onRemove }: {
   </section>;
 }
 
-export function DraftPage({ state, onMessage, onOpenHero }: {
+export function DraftPage({ state, draftLive, onMessage, onOpenHero }: {
   state: DraftScenarioState;
+  draftLive?: DraftLiveState;
   onMessage: (message: string) => void;
   onOpenHero: (internalName: string) => void;
 }) {
@@ -159,9 +160,16 @@ export function DraftPage({ state, onMessage, onOpenHero }: {
       allies: [], enemies: [], bans: [], updatedAt: Date.now() });
     onMessage('Novo cenário local iniciado. Salve quando terminar.');
   }
+  const live = draftLive;
+  const liveName = (heroId: number) => heroes.find(hero => hero.id === heroId)?.name ?? `Herói ${heroId}`;
   return <>
     <div className="page-top"><div><div className="eyebrow">PLANEJAMENTO MANUAL · FORA DA AÇÃO</div><h1>Draft Advisor</h1><p>Counters com amostra pública e cobertura de funções explicitamente heurística.</p></div><div className="version">{modeLabel[scenario.mode].toUpperCase()} · POS. {scenario.position}</div></div>
     <div className="draft-live" role="status" aria-live="polite">{catalogError || catalogWarning || (loading ? 'Consultando confrontos na OpenDota.' : `${recommendations.length} recomendações disponíveis.`)}</div>
+    {live?.prompt?.visible && <section className="settings-card draft-context-prompt" role="dialog" aria-label="Ajuda contextual do draft">
+      <div><div className="eyebrow">DRAFT AO VIVO · GSI</div><h3>{live.prompt.message}</h3><p>{live.enemies.length ? `${live.enemies.length} inimigo(s) confirmado(s). Você pode acompanhar ou preencher o editor manualmente.` : 'Nenhum inimigo confirmado ainda; o editor manual continua disponível.'}</p></div>
+      <div className="draft-actions"><button type="button" className="primary-button" onClick={() => void window.dotaOverlay.dismissDraftPrompt('ranked')}>Ajuda ranqueada</button><button type="button" className="secondary-button" onClick={() => void window.dotaOverlay.dismissDraftPrompt('follow')}>Só acompanhar</button><button type="button" className="secondary-button" onClick={() => void window.dotaOverlay.dismissDraftPrompt('later')}>Agora não</button></div>
+    </section>}
+    {live?.source === 'gsi' && live.phase !== 'unknown' && <section className="settings-card draft-live-card"><div className="card-top"><div><h3>Draft recebido do GSI</h3><p>Somente escolhas confirmadas pelo jogo; dados ausentes não são preenchidos por API histórica.</p></div><span className="mini-label">{live.phase.toUpperCase()}</span></div><div className="draft-chips">{live.allies.map(pick => <span key={`a-${pick.order}-${pick.heroId}`}>{live.localTeam === 'unknown' ? 'Radiant' : 'Aliado'} · {liveName(pick.heroId)}</span>)}{live.enemies.map(pick => <span key={`e-${pick.order}-${pick.heroId}`}>{live.localTeam === 'unknown' ? 'Dire' : 'Inimigo'} · {liveName(pick.heroId)}</span>)}{live.bans.map(pick => <span key={`b-${pick.order}-${pick.heroId}`}>Ban · {liveName(pick.heroId)}</span>)}{!live.allies.length && !live.enemies.length && !live.bans.length && <small>Aguardando picks/bans confirmados.</small>}</div></section>}
     {catalogError && <div className="notice error" role="alert" aria-live="assertive">{catalogError} O editor permanece bloqueado até o catálogo local voltar.</div>}
     {catalogWarning && <div className="notice" role="status">{catalogWarning}</div>}
     <section className="settings-card draft-toolbar"><div className="draft-fields"><label><span>Nome do cenário</span><input maxLength={60} aria-label="Nome do cenário" value={scenario.name} onChange={event => change({name:event.target.value})}/></label><label><span>Modo</span><select aria-label="Modo de draft" value={scenario.mode} onChange={event => changeMode(event.target.value as DraftScenario['mode'])}><option value="all-pick">All Pick</option><option value="turbo">Turbo</option><option value="captains">Captain's Mode</option></select></label><label><span>Posição buscada</span><select aria-label="Posição do draft" value={scenario.position} onChange={event => change({position:Number(event.target.value) as DraftScenario['position']})}>{[1,2,3,4,5].map(position => <option key={position} value={position}>{position} · {positionLabel[position]}</option>)}</select></label></div>

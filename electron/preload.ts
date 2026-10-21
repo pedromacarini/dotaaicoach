@@ -13,6 +13,7 @@ type NotificationRule = import('../src/shared/contracts').NotificationRule;
 type NotificationMode = import('../src/shared/contracts').NotificationMode;
 type ItemTimingState = import('../src/shared/contracts').ItemTimingState;
 type DraftScenarioState = import('../src/shared/contracts').DraftScenarioState;
+type DraftLiveState = import('../src/shared/contracts').DraftLiveState;
 type DraftScenario = import('../src/shared/contracts').DraftScenario;
 type LocalProfile = import('../src/shared/contracts').LocalProfile;
 type LicenseStatus = import('../src/shared/contracts').LicenseStatus;
@@ -26,6 +27,7 @@ const overlayBridge: DotaOverlayAPI = {
   getMatchSessions: () => ipcRenderer.invoke('sessions:get'),
   getItemTiming: () => ipcRenderer.invoke('items:get'),
   getDraftScenarios: () => ipcRenderer.invoke('draft:get'),
+  getDraftLive: () => ipcRenderer.invoke('draft-live:get') as Promise<DraftLiveState>,
   getLocalProfile: () => ipcRenderer.invoke('profile:get') as Promise<LocalProfile>,
   updateLocalProfile: patch => ipcRenderer.invoke('profile:update', patch),
   getLicenseStatus: () => ipcRenderer.invoke('license:get') as Promise<LicenseStatus>,
@@ -70,6 +72,12 @@ const overlayBridge: DotaOverlayAPI = {
     ipcRenderer.on('draft:changed', listener);
     return () => ipcRenderer.removeListener('draft:changed', listener);
   },
+  onDraftLive: handler => {
+    const listener = (_event: Electron.IpcRendererEvent, value: DraftLiveState) => handler(value);
+    ipcRenderer.on('draft-live:changed', listener);
+    return () => ipcRenderer.removeListener('draft-live:changed', listener);
+  },
+  dismissDraftPrompt: action => ipcRenderer.invoke('draft-live:dismiss', action) as Promise<DraftLiveState>,
   setDemo: enabled => ipcRenderer.invoke('demo:set', enabled),
   setOverlayVisible: visible => ipcRenderer.invoke('overlay:visible', visible),
   saveGsiConfig: () => ipcRenderer.invoke('gsi:save-config'),

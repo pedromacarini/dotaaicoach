@@ -18,7 +18,7 @@ const positions: Array<{id:Position;name:string;detail:string}> = [
   {id:5,name:'Suporte 5',detail:'Hard support · visão e proteção'},
 ];
 export function Dashboard() {
-  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry } = useOverlay();
+  const { snapshot, status, preferences, gsiDiagnostics, matchSessions, notificationCenter, itemTiming, draftScenarios, draftLive, localProfile, setLocalProfile, license, setLicense, telemetry, setTelemetry } = useOverlay();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -128,7 +128,7 @@ export function Dashboard() {
       <button type="button" className={`menu-item menu-button ${page === 'settings' ? 'current' : ''}`} onClick={() => setPage('settings')}>⚙ Configurações</button>
       <div className="sidebar-end">Projeto independente e experimental.<br/>Sem leitura de memória, automação ou acesso a dados ocultos.</div>
     </aside>
-    <main className={`main-area ${page === 'library' ? 'library-host' : ''}`}>{page === 'library' ? <LibraryExplorer heroKey={libraryHeroKey}/> : page === 'stats' ? <StatsPage snapshot={snapshot} preferences={preferences} sessions={matchSessions}/> : page === 'items' ? <ItemTimingPage state={itemTiming}/> : page === 'routes' ? <FarmRoutePage position={preferences.position} gameTime={snapshot.gameTime}/> : page === 'draft' ? <><DraftPage state={draftScenarios} onMessage={setMessage} onOpenHero={key => { setLibraryHeroKey(key); setPage('library'); }}/>{message && <div className="notice">{message}</div>}</> : page === 'notifications' ? <><NotificationPage state={notificationCenter} position={preferences.position} onMessage={setMessage}/>{message && <div className="notice">{message}</div>}</> : page === 'gsi' ? <>
+    <main className={`main-area ${page === 'library' ? 'library-host' : ''}`}>{page === 'library' ? <LibraryExplorer heroKey={libraryHeroKey}/> : page === 'stats' ? <StatsPage snapshot={snapshot} preferences={preferences} sessions={matchSessions}/> : page === 'items' ? <ItemTimingPage state={itemTiming}/> : page === 'routes' ? <FarmRoutePage position={preferences.position} gameTime={snapshot.gameTime}/> : page === 'draft' ? <><DraftPage state={draftScenarios} draftLive={draftLive} onMessage={setMessage} onOpenHero={key => { setLibraryHeroKey(key); setPage('library'); }}/>{message && <div className="notice">{message}</div>}</> : page === 'notifications' ? <><NotificationPage state={notificationCenter} position={preferences.position} onMessage={setMessage}/>{message && <div className="notice">{message}</div>}</> : page === 'gsi' ? <>
       <div className="page-top"><div><div className="eyebrow">CONEXÃO COM O DOTA 2</div><h1>Diagnóstico GSI</h1><p>Instalação, comunicação local e campos recebidos em tempo real.</p></div><div className="version">PORTA {status.gsiPort}</div></div>
       <div className="gsi-health-grid">
         <div className={status.gsiListening?'ok':'bad'}><span>1</span><small>SERVIDOR LOCAL</small><strong>{status.gsiListening?'Pronto':'Indisponível'}</strong><p>{status.gsiListening?'Escutando somente neste computador.':'A porta não pôde ser aberta.'}</p></div>

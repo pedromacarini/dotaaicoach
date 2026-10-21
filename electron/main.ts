@@ -4,7 +4,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
-import type { GameSnapshot, AppStatus, DraftScenario, GsiDiagnostics, ItemTimingState, MatchSessionState, MatchSessionUpdate, NotificationMode, OverlayLayoutPatch } from '../src/shared/contracts';
+import type { GameSnapshot, AppStatus, DraftLiveState, DraftScenario, GsiDiagnostics, ItemTimingBenchmark, ItemTimingState, MatchSessionState, MatchSessionUpdate, NotificationMode, OverlayLayoutPatch } from '../src/shared/contracts';
 import { GSI_PORT, generateToken, makeGsiConfig, startGsiServer, unknownInventory } from './gsi';
 import { resolveRendererTarget } from './renderer-target';
 import { createPreferencesStore, defaultPreferences, type PreferencesStore } from './preferences';
@@ -19,6 +19,7 @@ import { createProfileStore, type ProfileStore } from './profile-store';
 import { createLicenseStore, type LicenseStore } from './license-store';
 import { createTelemetryStore, type TelemetryStore } from './telemetry-store';
 import { evaluateEconomy } from '../src/core/farm-benchmark';
+import { createDraftLiveTracker, type DraftLiveTracker } from '../src/core/draft-live';
 import type { Position } from '../src/shared/contracts';
 import {
   defaultSteamRoots, discoverDotaInstallation, inspectGsiInstallation, installGsiConfiguration,
@@ -37,7 +38,9 @@ let sessionRecorder: MatchSessionRecorder | null = null;
 let notificationStore: NotificationStore | null = null;
 let notificationCenter: NotificationCenter | null = null;
 let itemTracker: ItemTracker | null = null;
+let itemTimingBenchmarks: ItemTimingBenchmark[] = [];
 let draftStore: DraftStore | null = null;
+let draftLiveTracker: DraftLiveTracker = createDraftLiveTracker();
 let profileStore: ProfileStore | null = null;
 let licenseStore: LicenseStore | null = null;
 let telemetryStore: TelemetryStore | null = null;
@@ -119,6 +122,7 @@ function draftState() {
   return draftStore.get();
 }
 function notifyDraft(): void { if (draftStore) send('draft:changed', draftStore.get()); }
+function notifyDraftLive(): void { send('draft-live:changed', draftLiveTracker.get()); }
 function notifyGsiDiagnostics(): void { send('gsi:diagnostics-changed', gsiDiagnostics); }
 function matchSessions(): MatchSessionState { return sessionRecorder?.getState() ?? { active: null, recent: [] }; }
 function notifyMatchSessions(recentChanged: boolean): void {
@@ -136,6 +140,11 @@ function updateSnapshot(value: GameSnapshot): void {
   const previous = snapshot;
   status.demoEnabled = false;
   snapshot = value;
+  const liveDraft = draftLiveTracker.accept(value.draft, value.matchId, value.receivedAt);
+  snapshot = { ...value, draft: liveDraft };
+  if (liveDraft.revision > (previous.draft?.revision ?? 0) || liveDraft.source !== (previous.draft?.source ?? 'unavailable') ||
+      liveDraft.secondsRemaining !== (previous.draft?.secondsRemaining ?? null) ||
+      liveDraft.prompt?.visible !== previous.draft?.prompt?.visible) notifyDraftLive();
   if (telemetryStore) {
     if (previous.source !== 'gsi' && value.source === 'gsi') telemetryStore.record('match.started', { hero: value.heroInternalName, phase: value.gameState });
     if (previous.matchId && value.matchId && previous.matchId !== value.matchId) telemetryStore.record('match.changed', { hero: value.heroInternalName });
@@ -722,14 +731,43 @@ function getOrCreateToken(): string {
   fs.writeFileSync(file, token, { encoding: 'utf8', mode: 0o600, flag: 'w' });
   return token;
 }
+function loadLocalItemTimingBenchmarks(): ItemTimingBenchmark[] {
+  const file = path.join(app.getPath('userData'), 'item-timing-benchmarks.json');
+  try {
+    const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const values = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' && Array.isArray((parsed as { benchmarks?: unknown }).benchmarks) ? (parsed as { benchmarks: unknown[] }).benchmarks : []);
+    return values.filter((value): value is ItemTimingBenchmark => {
+      if (!value || typeof value !== 'object') return false;
+      const item = value as Partial<ItemTimingBenchmark>;
+      return item.schemaVersion === 1 && typeof item.heroInternalName === 'string' &&
+        typeof item.itemInternalName === 'string' && [1, 2, 3, 4, 5].includes(item.position ?? 0) &&
+        Number.isFinite(item.medianSeconds) && Number.isFinite(item.p25Seconds) && Number.isFinite(item.p75Seconds) &&
+        Number.isFinite(item.sampleSize) && typeof item.patch === 'string' &&
+        (item.mode === 'normal' || item.mode === 'turbo') && typeof item.source === 'string';
+    });
+  } catch { return []; }
+}
 function assertDashboard(event: Electron.IpcMainInvokeEvent): void {
   if (!dashboard || dashboard.isDestroyed() || event.sender.id !== dashboard.webContents.id)
     throw new Error('Ação restrita ao painel de controle.');
+}
+function assertDashboardOrOverlay(event: Electron.IpcMainInvokeEvent): void {
+  const isDashboard = Boolean(dashboard && !dashboard.isDestroyed() && event.sender.id === dashboard.webContents.id);
+  const isOverlay = Boolean(overlay && !overlay.isDestroyed() && event.sender.id === overlay.webContents.id);
+  if (!isDashboard && !isOverlay) throw new Error('Ação restrita às janelas do aplicativo.');
 }
 function installHandlers(): void {
   ipcMain.handle('snapshot:get', () => snapshot);
   ipcMain.handle('items:get', () => itemTimingState());
   ipcMain.handle('draft:get', event => { assertDashboard(event); return draftState(); });
+  ipcMain.handle('draft-live:get', () => draftLiveTracker.get());
+  ipcMain.handle('draft-live:dismiss', (event, action: unknown) => {
+    assertDashboardOrOverlay(event);
+    if (action !== 'ranked' && action !== 'follow' && action !== 'later') throw new Error('Ação de prompt inválida.');
+    const state = draftLiveTracker.dismiss(action);
+    notifyDraftLive();
+    return state;
+  });
   ipcMain.handle('status:get', () => ({...status}));
   ipcMain.handle('preferences:get', () => preferencesStore?.get() ?? defaultPreferences());
   ipcMain.handle('profile:get', () => profileStore?.get());
@@ -1005,7 +1043,11 @@ else {
       getAlertsEnabled: () => preferencesStore?.get().overlayLayout.modules.alerts ?? false,
       onSound: () => shell.beep(),
     });
-    itemTracker = createItemTracker();
+    itemTimingBenchmarks = loadLocalItemTimingBenchmarks();
+    itemTracker = createItemTracker({
+      benchmarks: itemTimingBenchmarks,
+      getBenchmarkContext: () => ({ patch: snapshot.patch ?? null, mode: snapshot.mode ?? null }),
+    });
     itemTracker.accept(snapshot, preferencesStore.get().position);
     draftStore = createDraftStore(path.join(app.getPath('userData'), 'draft-scenarios.json'));
     refreshGsiInstallation();

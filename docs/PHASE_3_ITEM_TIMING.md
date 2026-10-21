@@ -12,7 +12,8 @@ Implementado em 2026-10-20 sobre Electron 37.x.
 - Dois `matchid` confiáveis diferentes ou forte retorno ao início abrem uma sessão nova e limpam também o herói anterior. Se o primeiro `matchid` confiável chega tarde, ele apenas identifica a sessão já em curso e preserva as observações anteriores. Reconexão com o mesmo `matchid` mantém a deduplicação.
 - Pacotes sem mudança observável no inventário, sessão, posição ou comparação não geram um novo evento `items:changed` para os renderers.
 - O benchmark inicial é uma fixture autoral sintética para Axe posição 3, patch rotulado `7.41-fixture`, com amostra fictícia declarada. Ele serve apenas para testar cedo/no esperado/tarde; não é OpenDota, não é profissional e não afirma representar o patch do cliente.
-- O estado GSI aparece como **não validado** até termos fixtures e uma execução real em lobby/bots. A demo aparece sempre como sintética.
+- Em produção, o app lê opcionalmente `%APPDATA%/DotaIACoach/item-timing-benchmarks.json` (ou o `userData` equivalente da instalação). O arquivo aceita uma lista ou `{ "benchmarks": [...] }`, com registros schema `1`, patch, modo, posição, percentis, amostra e fonte. Arquivo ausente/malformado resulta em **sem amostra**, sem rede por tick e sem inventar timing.
+- O estado GSI aparece como **não validado** até existir benchmark local compatível com herói, posição, patch e modo. A demo aparece sempre como sintética.
 
 ## Arquitetura
 
@@ -48,5 +49,5 @@ Itens vistos durante estratégia/pré-jogo não viram “primeira observação�
 ## Ainda pendente
 
 - Capturar payloads reais anonimizados do Dota para confirmar nomes/cadência de todos os slots, cargas, combinação e reconexão.
-- Substituir/ampliar a fixture por benchmark público real com consulta, patch, filtros, tamanho da amostra, cache e ressalva de que `purchase_log` e primeira observação GSI não são grandezas idênticas.
+- Gerar/atualizar o cache local com benchmark público real (OpenDota/STRATZ), com patch, filtros, tamanho da amostra e ressalva de que `purchase_log` e primeira observação GSI não são grandezas idênticas.
 - Persistência/checkpoint do tracker fica para a Fase 9; nesta fase o estado de partida permanece somente em memória.
