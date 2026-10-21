@@ -5,7 +5,10 @@ import type { TelemetryEvent, TelemetryState } from '../src/shared/contracts';
 const MAX_EVENTS = 500;
 
 function fresh(): TelemetryState {
-  return { schemaVersion: 1, enabled: false, events: [] };
+  // Durante a fase inicial do produto, o diagnóstico local começa ligado para
+  // não perder o primeiro teste. Nada é transmitido; o usuário decide no
+  // encerramento se deseja exportar a sessão.
+  return { schemaVersion: 1, enabled: true, events: [] };
 }
 
 function normalize(value: unknown): TelemetryState {

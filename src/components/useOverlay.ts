@@ -41,7 +41,7 @@ export const defaultDraftLive: DraftLiveState = {
   allies: [], enemies: [], bans: [], revision: 0, receivedAt: null,
   prompt: { visible: false, message: 'Aguardando dados do draft do GSI.', phase: 'unknown', cooldownUntil: null, action: null },
 };
-export const defaultTelemetry: TelemetryState = { schemaVersion: 1, enabled: false, events: [] };
+export const defaultTelemetry: TelemetryState = { schemaVersion: 1, enabled: true, events: [] };
 export const formatClock = (time: number | null): string => {
   if (time == null) return '--:--';
   const sign = time < 0 ? '-' : '';

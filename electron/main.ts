@@ -45,6 +45,7 @@ let profileStore: ProfileStore | null = null;
 let licenseStore: LicenseStore | null = null;
 let telemetryStore: TelemetryStore | null = null;
 let lastDiagnosticRecordAt = 0;
+let quitDebugPrompted = false;
 let snapshot: GameSnapshot = emptySnapshot();
 const librarySmokeOutput = process.argv
   .find(argument => argument.startsWith('--library-smoke-output='))
@@ -124,6 +125,13 @@ function draftState() {
 }
 function notifyDraft(): void { if (draftStore) send('draft:changed', draftStore.get()); }
 function notifyDraftLive(): void { send('draft-live:changed', draftLiveTracker.get()); }
+function diagnosticReport(): Record<string, unknown> {
+  const safeSnapshot = { ...snapshot, matchId: null, receivedAt: null,
+    inventory: { observation: snapshot.inventory.observation, slots: snapshot.inventory.slots.map(slot => ({ ...slot, charges: null })) } };
+  return { schemaVersion: 1, generatedAt: new Date().toISOString(), app: { version: app.getVersion(), platform: process.platform, arch: process.arch, electron: process.versions.electron },
+    privacy: { sentToServer: false, matchIdIncluded: false, rawPayloadIncluded: false },
+    sections: { status: { ...status }, gsiDiagnostics, snapshot: safeSnapshot, itemTiming: itemTimingState(), draftLive: draftLiveTracker.get(), telemetry: telemetryStore?.get() ?? null } };
+}
 function notifyGsiDiagnostics(): void { send('gsi:diagnostics-changed', gsiDiagnostics); }
 function matchSessions(): MatchSessionState { return sessionRecorder?.getState() ?? { active: null, recent: [] }; }
 function notifyMatchSessions(recentChanged: boolean): void {
@@ -786,7 +794,7 @@ function installHandlers(): void {
   ipcMain.handle('license:get', () => licenseStore?.get());
   ipcMain.handle('license:activate-code', (event, code: unknown) => { assertDashboard(event); if (!licenseStore || typeof code !== 'string') throw new Error('Código de ativação inválido.'); return licenseStore.activateCode(code); });
   ipcMain.handle('license:import', async event => { assertDashboard(event); if (!licenseStore || !dashboard) throw new Error('Licença local ainda não foi inicializada.'); const result = await dialog.showOpenDialog(dashboard, { title: 'Importar licença offline', properties: ['openFile'], filters: [{ name: 'Licença DotaIACoach', extensions: ['json'] }] }); if (result.canceled || !result.filePaths[0]) return licenseStore.get(); return licenseStore.importFile(result.filePaths[0]); });
-  ipcMain.handle('telemetry:get', event => { assertDashboard(event); return telemetryStore?.get() ?? { schemaVersion: 1, enabled: false, events: [] }; });
+  ipcMain.handle('telemetry:get', event => { assertDashboard(event); return telemetryStore?.get() ?? { schemaVersion: 1, enabled: true, events: [] }; });
   ipcMain.handle('telemetry:set-enabled', (event, enabled: unknown) => { assertDashboard(event); if (typeof enabled !== 'boolean' || !telemetryStore) throw new Error('Entrada inválida.'); const state = telemetryStore.setEnabled(enabled); if (enabled) telemetryStore.record('telemetry.enabled'); return telemetryStore.get(); });
   ipcMain.handle('telemetry:clear', event => { assertDashboard(event); if (!telemetryStore) throw new Error('Telemetria local ainda não foi inicializada.'); return telemetryStore.clear(); });
   ipcMain.handle('telemetry:export', async event => {
@@ -802,12 +810,7 @@ function installHandlers(): void {
     if (!dashboard) throw new Error('Painel ainda não foi inicializado.');
     const result = await dialog.showSaveDialog(dashboard, { title: 'Exportar relatório de diagnóstico', defaultPath: 'dota-iacoach-diagnostico.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
     if (result.canceled || !result.filePath) return { canceled: true };
-    const safeSnapshot = { ...snapshot, matchId: null, receivedAt: null,
-      inventory: { observation: snapshot.inventory.observation, slots: snapshot.inventory.slots.map(slot => ({ ...slot, charges: null })) } };
-    const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), app: { version: app.getVersion(), platform: process.platform, arch: process.arch, electron: process.versions.electron },
-      privacy: { sentToServer: false, matchIdIncluded: false, rawPayloadIncluded: false }, status: { ...status }, gsiDiagnostics,
-      snapshot: safeSnapshot, itemTiming: itemTimingState(), draftLive: draftLiveTracker.get(), telemetry: telemetryStore?.get() ?? null };
-    fs.writeFileSync(result.filePath, JSON.stringify(report, null, 2), { encoding: 'utf8', mode: 0o600 });
+    fs.writeFileSync(result.filePath, JSON.stringify(diagnosticReport(), null, 2), { encoding: 'utf8', mode: 0o600 });
     return { canceled: false, filePath: result.filePath };
   });
   ipcMain.handle('gsi:diagnostics', () => gsiDiagnostics);
@@ -1041,6 +1044,25 @@ function installHandlers(): void {
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (dashboard) { dashboard.show(); dashboard.focus(); } });
+  app.on('before-quit', event => {
+    if (quitDebugPrompted || smokeMode || !telemetryStore || telemetryStore.get().events.length === 0) return;
+    event.preventDefault();
+    void (async () => {
+      const choice = await dialog.showMessageBox({
+        type: 'question', title: 'Sessão de teste encerrada',
+        message: 'Você deseja salvar o relatório de debug dessa seção?',
+        detail: 'O arquivo fica somente no seu computador e ajuda a investigar problemas do GSI e do overlay.',
+        buttons: ['Salvar relatório', 'Descartar', 'Continuar no app'], defaultId: 0, cancelId: 2,
+      });
+      if (choice.response === 2) return;
+      if (choice.response === 0 && dashboard && !dashboard.isDestroyed()) {
+        const result = await dialog.showSaveDialog(dashboard, { title: 'Salvar relatório de debug', defaultPath: 'dota-iacoach-debug.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
+        if (!result.canceled && result.filePath) fs.writeFileSync(result.filePath, JSON.stringify(diagnosticReport(), null, 2), { encoding: 'utf8', mode: 0o600 });
+      }
+      quitDebugPrompted = true;
+      app.quit();
+    })().catch(() => { quitDebugPrompted = true; app.quit(); });
+  });
   app.whenReady().then(async () => {
     authToken = getOrCreateToken();
     preferencesStore = createPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'));
