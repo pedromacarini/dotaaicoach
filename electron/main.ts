@@ -44,6 +44,7 @@ let draftLiveTracker: DraftLiveTracker = createDraftLiveTracker();
 let profileStore: ProfileStore | null = null;
 let licenseStore: LicenseStore | null = null;
 let telemetryStore: TelemetryStore | null = null;
+let lastDiagnosticRecordAt = 0;
 let snapshot: GameSnapshot = emptySnapshot();
 const librarySmokeOutput = process.argv
   .find(argument => argument.startsWith('--library-smoke-output='))
@@ -148,6 +149,16 @@ function updateSnapshot(value: GameSnapshot): void {
   if (telemetryStore) {
     if (previous.source !== 'gsi' && value.source === 'gsi') telemetryStore.record('match.started', { hero: value.heroInternalName, phase: value.gameState });
     if (previous.matchId && value.matchId && previous.matchId !== value.matchId) telemetryStore.record('match.changed', { hero: value.heroInternalName });
+    if (value.source === 'gsi' && value.receivedAt !== null && value.receivedAt - lastDiagnosticRecordAt >= 1000) {
+      lastDiagnosticRecordAt = value.receivedAt;
+      telemetryStore.record('gsi.snapshot', {
+        connected: value.connected, gameTime: value.gameTime, rawGameTime: value.rawGameTime ?? null,
+        gameState: value.gameState, hero: value.heroInternalName, heroLevel: value.heroLevel,
+        lastHits: value.lastHits, denies: value.denies, netWorth: value.netWorth, gpm: value.gpm,
+        inventoryObservation: value.inventory.observation, draftSource: value.draft?.source ?? 'unavailable',
+        draftPhase: value.draft?.phase ?? 'unknown', draftRevision: value.draft?.revision ?? 0,
+      });
+    }
   }
   const sessionUpdate = sessionRecorder?.accept(value);
   if (sessionUpdate?.changed) notifyMatchSessions(sessionUpdate.recentChanged);
@@ -784,6 +795,19 @@ function installHandlers(): void {
     const result = await dialog.showSaveDialog(dashboard, { title: 'Exportar telemetria local', defaultPath: 'dota-iacoach-telemetria.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
     if (result.canceled || !result.filePath) return { canceled: true };
     fs.writeFileSync(result.filePath, JSON.stringify(telemetryStore.get(), null, 2), { encoding: 'utf8', mode: 0o600 });
+    return { canceled: false, filePath: result.filePath };
+  });
+  ipcMain.handle('diagnostics:export', async event => {
+    assertDashboard(event);
+    if (!dashboard) throw new Error('Painel ainda não foi inicializado.');
+    const result = await dialog.showSaveDialog(dashboard, { title: 'Exportar relatório de diagnóstico', defaultPath: 'dota-iacoach-diagnostico.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
+    if (result.canceled || !result.filePath) return { canceled: true };
+    const safeSnapshot = { ...snapshot, matchId: null, receivedAt: null,
+      inventory: { observation: snapshot.inventory.observation, slots: snapshot.inventory.slots.map(slot => ({ ...slot, charges: null })) } };
+    const report = { schemaVersion: 1, generatedAt: new Date().toISOString(), app: { version: app.getVersion(), platform: process.platform, arch: process.arch, electron: process.versions.electron },
+      privacy: { sentToServer: false, matchIdIncluded: false, rawPayloadIncluded: false }, status: { ...status }, gsiDiagnostics,
+      snapshot: safeSnapshot, itemTiming: itemTimingState(), draftLive: draftLiveTracker.get(), telemetry: telemetryStore?.get() ?? null };
+    fs.writeFileSync(result.filePath, JSON.stringify(report, null, 2), { encoding: 'utf8', mode: 0o600 });
     return { canceled: false, filePath: result.filePath };
   });
   ipcMain.handle('gsi:diagnostics', () => gsiDiagnostics);

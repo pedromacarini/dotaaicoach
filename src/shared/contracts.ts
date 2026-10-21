@@ -403,6 +403,7 @@ export interface DotaOverlayAPI {
   setTelemetryEnabled(enabled: boolean): Promise<TelemetryState>;
   clearTelemetry(): Promise<TelemetryState>;
   exportTelemetry(): Promise<{ canceled: boolean; filePath?: string }>;
+  exportDiagnosticReport(): Promise<{ canceled: boolean; filePath?: string }>;
   getSnapshot(): Promise<GameSnapshot>;
   getStatus(): Promise<AppStatus>;
   getPreferences(): Promise<AppPreferences>;

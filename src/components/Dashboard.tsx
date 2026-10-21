@@ -95,6 +95,10 @@ export function Dashboard() {
     catch (e) { setMessage(`Erro ao exportar telemetria: ${String(e)}`); }
     finally { setBusy(false); }
   }
+  async function exportDiagnosticReport() {
+    try { const result = await window.dotaOverlay.exportDiagnosticReport(); if (!result.canceled) setMessage(`Relatório de diagnóstico exportado para: ${result.filePath}`); }
+    catch (e) { setMessage(`Erro ao exportar diagnóstico: ${String(e)}`); }
+  }
   async function installConfig() {
     setBusy(true); setMessage('');
     try {
@@ -169,7 +173,7 @@ export function Dashboard() {
       <section className="settings-card">
         <div className="card-top"><div><h3>Telemetria local</h3><p>Desligada por padrão. Se ativada, registra somente eventos técnicos neste computador; nada é enviado para servidor.</p></div><span className={`mini-label ${telemetry.enabled ? 'ok' : ''}`}>{telemetry.enabled ? 'ATIVA' : 'DESLIGADA'}</span></div>
         <div className="control-row"><div><strong>Permitir coleta local</strong><small>{telemetry.events.length} eventos guardados · sem match ID, conta ou conteúdo de chat</small></div><button type="button" className={`toggle ${telemetry.enabled ? 'active' : ''}`} aria-label="Alternar telemetria local" aria-pressed={telemetry.enabled} disabled={busy} onClick={() => void setTelemetryEnabled(!telemetry.enabled)}><span/></button></div>
-        <div className="gsi-actions"><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void exportTelemetry()}>Exportar JSON</button><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void clearTelemetry()}>Apagar histórico</button></div>
+        <div className="gsi-actions"><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void exportTelemetry()}>Exportar JSON</button><button type="button" className="secondary-button" onClick={() => void exportDiagnosticReport()}>Exportar relatório de teste</button><button type="button" className="secondary-button" disabled={busy || telemetry.events.length === 0} onClick={() => void clearTelemetry()}>Apagar histórico</button></div>
       </section>
       {message && <div className="notice">{message}</div>}
       <div className="footerline"><span>Layout validado e mantido dentro da área útil do monitor.</span><span>Salvo apenas neste computador</span></div>

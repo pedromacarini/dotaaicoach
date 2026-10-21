@@ -37,6 +37,7 @@ const overlayBridge: DotaOverlayAPI = {
   setTelemetryEnabled: enabled => ipcRenderer.invoke('telemetry:set-enabled', enabled) as Promise<TelemetryState>,
   clearTelemetry: () => ipcRenderer.invoke('telemetry:clear') as Promise<TelemetryState>,
   exportTelemetry: () => ipcRenderer.invoke('telemetry:export'),
+  exportDiagnosticReport: () => ipcRenderer.invoke('diagnostics:export'),
   onSnapshot: handler => {
     const listener = (_event: Electron.IpcRendererEvent, value: GameSnapshot) => handler(value);
     ipcRenderer.on('snapshot:changed', listener);
