@@ -23,6 +23,7 @@ export function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState('');
   const [activationCode, setActivationCode] = useState('');
+  const [showGsiHelp, setShowGsiHelp] = useState(false);
   const apiAvailable = Boolean(window.dotaOverlay);
   useEffect(() => { if (localProfile && profileName === '') setProfileName(localProfile.displayName); }, [localProfile, profileName]);
   const [page,setPage] = useState<'onboarding'|'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'routes'|'notifications'|'settings'>(() => {
@@ -117,6 +118,11 @@ export function Dashboard() {
   const hasRealPacket = snapshot.source === 'gsi';
   const lastPacketText = gsiDiagnostics.lastPacketAt
     ? new Date(gsiDiagnostics.lastPacketAt).toLocaleTimeString('pt-BR') : 'Nenhum pacote recebido';
+  const gsiHelp = showGsiHelp ? <section className="settings-card gsi-help" aria-label="Ajuda para conectar o Dota 2">
+    <div className="card-top"><div><h3>Ajuda: conectar o Dota 2</h3><p>O Dota envia os dados somente quando a configuração local está instalada e o jogo foi reiniciado.</p></div><button type="button" className="secondary-button" onClick={() => setShowGsiHelp(false)}>Fechar ajuda</button></div>
+    <div className="gsi-help-steps"><div><b>1</b><span>Com o Dota fechado, clique em <strong>Localizar e instalar configuração</strong> abaixo.</span></div><div><b>2</b><span>Se o Steam não localizar o jogo, use <strong>Salvar CFG manualmente</strong> e escolha a pasta <code>game\dota\cfg\gamestate_integration</code>.</span></div><div><b>3</b><span>Na Steam: Biblioteca → Dota 2 → Propriedades → Geral → Opções de inicialização. Adicione <code>-gamestateintegration</code>.</span></div><div><b>4</b><span>Feche e abra o Dota novamente. Entre em lobby, contra bots ou assista a uma partida. O cartão 3 deve mudar para <strong>Enviando dados</strong>.</span></div></div>
+    <div className="notice">O servidor do DotaIACoach fica somente em <code>127.0.0.1:{status.gsiPort}</code>. Nenhum dado precisa ser enviado para a internet.</div>
+  </section> : null;
   return <div className="dashboard">
     <aside className="sidebar">
       <div className="brand"><span className="brand-icon">◈</span><div><strong>DOTA OPEN</strong><small>OVERLAY · 0.2.1</small></div></div>
@@ -140,12 +146,13 @@ export function Dashboard() {
         <div className={hasRealPacket && snapshot.connected?'ok':'pending'}><span>3</span><small>DOTA 2</small><strong>{hasRealPacket && snapshot.connected?'Enviando dados':'Aguardando partida'}</strong><p>{lastPacketText}</p></div>
       </div>
       <section className="settings-card gsi-setup">
-        <div className="card-top"><div><h3>Instalação automática</h3><p>O app procura as bibliotecas do Steam e grava somente o arquivo oficial de Game State Integration.</p></div><span className="mini-label">SEM LEITURA DE MEMÓRIA</span></div>
+        <div className="card-top"><div><h3>Instalação automática</h3><p>O app procura as bibliotecas do Steam e grava somente o arquivo oficial de Game State Integration.</p></div><div className="gsi-actions"><span className="mini-label">SEM LEITURA DE MEMÓRIA</span><button type="button" className="secondary-button" onClick={() => setShowGsiHelp(value => !value)}>❔ {showGsiHelp ? 'Fechar ajuda' : 'Como conectar?'}</button></div></div>
         <div className="path-box"><small>PASTA DO DOTA 2</small><code>{gsiDiagnostics.installation.dotaPath || 'Não localizada automaticamente'}</code></div>
         <div className="gsi-actions"><button type="button" className="primary-button" disabled={busy || !apiAvailable} onClick={() => void installConfig()}>{busy?'Verificando...':gsiDiagnostics.installation.configInstalled?'Verificar / atualizar configuração':'Localizar e instalar configuração'}</button><button type="button" className="secondary-button" disabled={busy || !apiAvailable} onClick={() => void saveConfig()}>Salvar CFG manualmente</button></div>
         {gsiDiagnostics.installation.configFilePath && <p className="config-target">Destino: <code>{gsiDiagnostics.installation.configFilePath}</code></p>}
         {gsiDiagnostics.installation.error && <div className="notice error">{gsiDiagnostics.installation.error}</div>}
       </section>
+      {gsiHelp}
       <section className="settings-card">
         <div className="card-top"><div><h3>Perfil local</h3><p>Identidade somente deste computador. Não exige login nem envia dados.</p></div><span className="mini-label">ID {localProfile?.localId.slice(0, 8) ?? '—'}</span></div>
         <div className="notification-form"><label className="wide"><span>Nome exibido</span><input maxLength={40} value={profileName} onChange={event => setProfileName(event.target.value)}/></label><button type="button" className="primary-button" disabled={busy || !profileName.trim()} onClick={() => void saveProfile()}>Salvar perfil</button></div>
@@ -181,7 +188,7 @@ export function Dashboard() {
       {page === 'onboarding' && <section className="settings-card" aria-labelledby="onboarding-title">
         <div className="card-top"><div><div className="eyebrow">PRIMEIROS PASSOS</div><h2 id="onboarding-title">Deixe o assistente pronto</h2><p>Escolha sua posição, conecte o Dota, confira o som e decida sobre a ativação.</p></div><span className="mini-label">CONFIGURAÇÃO LOCAL</span></div>
         <div className="position-grid">{positions.map(position => <button type="button" key={position.id} disabled={busy} className={preferences.position===position.id?'selected':''} aria-pressed={preferences.position===position.id} onClick={() => void setPosition(position.id)}><span>{position.id}</span><strong>{position.name}</strong><small>{position.detail}</small></button>)}</div>
-        <div className="control-row"><div><strong>GSI do Dota 2</strong><small>{gsiDiagnostics.installation.configCurrent ? 'Configuração instalada; valide em lobby ou partida contra bots.' : 'Instale a configuração oficial pelo diagnóstico.'}</small></div><button type="button" className="secondary-button" onClick={() => { setPage('gsi'); setMessage(''); }}>Abrir diagnóstico</button></div>
+        <div className="control-row"><div><strong>GSI do Dota 2</strong><small>{gsiDiagnostics.installation.configCurrent ? 'Configuração instalada; valide em lobby ou partida contra bots.' : 'Instale a configuração oficial pelo diagnóstico.'}</small></div><div className="gsi-actions"><button type="button" className="secondary-button" onClick={() => { setPage('gsi'); setMessage(''); }}>Abrir diagnóstico</button><button type="button" className="secondary-button" onClick={() => { setShowGsiHelp(true); setPage('gsi'); setMessage(''); }}>❔ Ajuda para conectar</button></div></div>
         <div className="control-row"><div><strong>Som e voz</strong><small>O Cronograma permite escolher alertas silenciosos, som ou voz em português.</small></div><button type="button" className="secondary-button" disabled={busy || !apiAvailable} onClick={() => void previewSound()}>♪ Testar som</button></div>
         <div className="control-row"><div><strong>Ativação</strong><small>{license?.valid ? 'Licença local ativa.' : 'Opcional: continue no modo gratuito ou use o cartão de ativação na Visão geral.'}</small></div><span className={`mini-label ${license?.valid ? 'ok' : ''}`}>{license?.valid ? 'ATIVA' : 'OPCIONAL'}</span></div>
         <button type="button" className="primary-button" onClick={finishOnboarding}>Concluir e abrir o painel</button>
