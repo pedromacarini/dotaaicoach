@@ -7,6 +7,7 @@ import { OverlaySettings } from './OverlaySettings';
 import { NotificationPage } from './NotificationPage';
 import { ItemTimingPage } from './ItemTimingPage';
 import { DraftPage } from './DraftPage';
+import { FarmRoutePage } from './FarmRoutePage';
 import { ONBOARDING_COMPLETE_VALUE, ONBOARDING_STORAGE_KEY, shouldShowOnboarding } from '../core/onboarding';
 const value = (n: number | null) => n === null ? '—' : n.toLocaleString('pt-BR');
 const positions: Array<{id:Position;name:string;detail:string}> = [
@@ -24,7 +25,7 @@ export function Dashboard() {
   const [activationCode, setActivationCode] = useState('');
   const apiAvailable = Boolean(window.dotaOverlay);
   useEffect(() => { if (localProfile && profileName === '') setProfileName(localProfile.displayName); }, [localProfile, profileName]);
-  const [page,setPage] = useState<'onboarding'|'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'notifications'|'settings'>(() => {
+  const [page,setPage] = useState<'onboarding'|'overview'|'library'|'gsi'|'stats'|'items'|'draft'|'routes'|'notifications'|'settings'>(() => {
     try { return shouldShowOnboarding(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)) ? 'onboarding' : 'overview'; }
     catch { return 'onboarding'; }
   });
@@ -122,11 +123,12 @@ export function Dashboard() {
       <button type="button" className={`menu-item menu-button ${page === 'stats' ? 'current' : ''}`} onClick={() => setPage('stats')}>⌁ Estatísticas</button>
       <button type="button" className={`menu-item menu-button ${page === 'items' ? 'current' : ''}`} onClick={() => setPage('items')}>◇ Itens</button>
       <button type="button" className={`menu-item menu-button ${page === 'draft' ? 'current' : ''}`} onClick={() => { setPage('draft'); setMessage(''); }}>♙ Draft Advisor</button>
+      <button type="button" className={`menu-item menu-button ${page === 'routes' ? 'current' : ''}`} onClick={() => setPage('routes')}>⌁ Rotas de farm</button>
       <button type="button" className={`menu-item menu-button ${page === 'notifications' ? 'current' : ''}`} onClick={() => { setPage('notifications'); setMessage(''); }}>◴ Cronograma</button>
       <button type="button" className={`menu-item menu-button ${page === 'settings' ? 'current' : ''}`} onClick={() => setPage('settings')}>⚙ Configurações</button>
       <div className="sidebar-end">Projeto independente e experimental.<br/>Sem leitura de memória, automação ou acesso a dados ocultos.</div>
     </aside>
-    <main className={`main-area ${page === 'library' ? 'library-host' : ''}`}>{page === 'library' ? <LibraryExplorer heroKey={libraryHeroKey}/> : page === 'stats' ? <StatsPage snapshot={snapshot} preferences={preferences} sessions={matchSessions}/> : page === 'items' ? <ItemTimingPage state={itemTiming}/> : page === 'draft' ? <><DraftPage state={draftScenarios} onMessage={setMessage} onOpenHero={key => { setLibraryHeroKey(key); setPage('library'); }}/>{message && <div className="notice">{message}</div>}</> : page === 'notifications' ? <><NotificationPage state={notificationCenter} position={preferences.position} onMessage={setMessage}/>{message && <div className="notice">{message}</div>}</> : page === 'gsi' ? <>
+    <main className={`main-area ${page === 'library' ? 'library-host' : ''}`}>{page === 'library' ? <LibraryExplorer heroKey={libraryHeroKey}/> : page === 'stats' ? <StatsPage snapshot={snapshot} preferences={preferences} sessions={matchSessions}/> : page === 'items' ? <ItemTimingPage state={itemTiming}/> : page === 'routes' ? <FarmRoutePage position={preferences.position} gameTime={snapshot.gameTime}/> : page === 'draft' ? <><DraftPage state={draftScenarios} onMessage={setMessage} onOpenHero={key => { setLibraryHeroKey(key); setPage('library'); }}/>{message && <div className="notice">{message}</div>}</> : page === 'notifications' ? <><NotificationPage state={notificationCenter} position={preferences.position} onMessage={setMessage}/>{message && <div className="notice">{message}</div>}</> : page === 'gsi' ? <>
       <div className="page-top"><div><div className="eyebrow">CONEXÃO COM O DOTA 2</div><h1>Diagnóstico GSI</h1><p>Instalação, comunicação local e campos recebidos em tempo real.</p></div><div className="version">PORTA {status.gsiPort}</div></div>
       <div className="gsi-health-grid">
         <div className={status.gsiListening?'ok':'bad'}><span>1</span><small>SERVIDOR LOCAL</small><strong>{status.gsiListening?'Pronto':'Indisponível'}</strong><p>{status.gsiListening?'Escutando somente neste computador.':'A porta não pôde ser aberta.'}</p></div>
