@@ -76,7 +76,7 @@ export function StatsPage({ snapshot, preferences, sessions }: {
       <div><small>DIFERENÇA</small><strong className={assessment && assessment.delta !== null && assessment.delta >= 0 ? 'positive' : 'negative'}>{assessment?.delta === null || assessment?.delta === undefined ? '—' : `${assessment.delta > 0 ? '+' : ''}${assessment.delta}`}</strong></div>
       <div><small>FAIXA DA META</small><strong>{assessment ? `±${assessment.tolerance}` : '—'}</strong></div>
     </section>
-    <section className="stats-economy">{[['PATRIMÔNIO', netWorthAssessment], ['GPM', gpmAssessment]].map(([label, economy]) => {
+    <section className="stats-economy">{[['PATRIMÔNIO TOTAL', netWorthAssessment], ['GPM', gpmAssessment]].map(([label, economy]) => {
       const value = economy as ReturnType<typeof evaluateEconomy>;
       return <div className={`farm-grade ${value?.classification ?? 'unavailable'}`} key={label as string}><small>{label as string} · {positionNames[benchmarkPosition]}</small><strong>{value?.actual === null || value?.actual === undefined ? 'Sem dado' : number(value.actual)}</strong><p>{value ? `Média ${number(value.target)} · ${value.delta !== null && value.delta >= 0 ? '+' : ''}${value.delta ?? '—'}` : 'Aguardando tempo e dado do GSI.'}</p></div>;
     })}</section>
