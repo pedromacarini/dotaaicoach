@@ -15,12 +15,18 @@ export function ItemTimingPage({ state }: { state: ItemTimingState }) {
   const observed = state.inventory.slots.filter(slot => slot.state === 'present');
   const unknownCount = state.inventory.slots.filter(slot => slot.state === 'unknown').length;
   const emptyCount = state.inventory.slots.filter(slot => slot.state === 'empty').length;
+  const wardNames = { item_ward_observer: 'Observer', item_ward_sentry: 'Sentry', item_dust: 'Dust' } as const;
+  const wardCounts = Object.keys(wardNames).map(key => {
+    const slots = state.inventory.slots.filter(slot => slot.state === 'present' && slot.itemInternalName === key);
+    return { key, name: wardNames[key as keyof typeof wardNames], count: slots.reduce((sum, slot) => sum + Math.max(1, slot.charges ?? 1), 0) };
+  });
   return <>
     <div className="page-top"><div><div className="eyebrow">INVENTÁRIO PRÓPRIO · PRIMEIRA OBSERVAÇÃO</div><h1>Timing de itens</h1><p>Histórico defensivo do que o GSI mostrou. Aparição não significa compra confirmada.</p></div><div className={`version item-source ${state.source}`}>{state.source === 'demo' ? 'DEMO SINTÉTICA' : state.source === 'gsi' ? 'GSI · NÃO VALIDADO' : 'AGUARDANDO GSI'}</div></div>
     <div className="item-summary">
       <section className="settings-card"><div className="card-top"><div><h3>Inventário observado</h3><p>Slots ausentes continuam desconhecidos; somente campos presentes podem ser vazios.</p></div><span className="mini-label">{observed.length} PRESENTES · {emptyCount} VAZIOS · {unknownCount} DESCONHECIDOS</span></div>
         {state.inventory.observation === 'unknown' ? <div className="stats-empty">O pacote ainda não trouxe o campo <code>items</code>.</div> : <div className="inventory-slots">{state.inventory.slots.map(slot => <div key={slot.key} className={slot.state}><small>{areaNames[slot.area]} · {slot.key}</small><strong>{slot.state === 'present' && slot.itemInternalName ? itemName(slot.itemInternalName) : slot.state === 'empty' ? 'Vazio observado' : 'Desconhecido'}</strong>{slot.charges !== null && <span>{slot.charges} cargas</span>}</div>)}</div>}
       </section>
+      <section className="settings-card"><div className="card-top"><div><h3>Suporte observado</h3><p>Quantidade somente do inventário próprio recebido pelo GSI.</p></div><span className="mini-label">{state.inventory.observation === 'unknown' ? 'SEM DADO' : 'LOCAL'}</span></div><div className="hero-stats ward-counts">{wardCounts.map(ward => <div key={ward.key}><small>{ward.name}</small><strong>{state.inventory.observation === 'unknown' ? '—' : ward.count}</strong></div>)}</div></section>
       <section className="settings-card item-evidence"><div className="card-top"><div><h3>Qualidade da evidência</h3><p>O tracker deduplica troca de slot, mochila, baú, combinação e reaparição.</p></div></div>
         <div className="evidence-line"><span>Fonte atual</span><strong>{state.validation === 'synthetic-demo' ? 'Fixture autoral sintética' : state.validation === 'unvalidated-gsi' ? 'GSI local ainda não validado no Dota' : 'Nenhuma'}</strong></div>
         <div className="evidence-line"><span>Evento registrado</span><strong>Primeira observação, não compra</strong></div>
